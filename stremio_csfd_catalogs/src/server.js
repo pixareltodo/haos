@@ -40,8 +40,8 @@ function createApp(options, catalogManager, traktClient) {
     res.json({
       ok: true,
       addon: options.addon_name,
-      version: options.addon_version || '1.0.7',
-      buildSignature: options.addon_build_signature || '1.0.7-trakt-fallback-auth-ui-2026-05-03',
+      version: options.addon_version || '1.0.8',
+      buildSignature: options.addon_build_signature || '1.0.8-catalog-filters-2026-05-03',
       catalogs: await catalogManager.getStatus()
     });
   });
@@ -93,8 +93,8 @@ async function resolveHttpsCredentials(options) {
 async function start() {
   const options = await loadAddonOptions();
   logger.info('Addon build info', {
-    version: options.addon_version || '1.0.7',
-    buildSignature: options.addon_build_signature || '1.0.7-trakt-fallback-auth-ui-2026-05-03'
+    version: options.addon_version || '1.0.8',
+    buildSignature: options.addon_build_signature || '1.0.8-catalog-filters-2026-05-03'
   });
   await ensureDir(options.cacheDir);
   await ensureDir(options.shareDir);
