@@ -1,3 +1,5 @@
+import { BUILD_INFO } from '../config/buildInfo.js';
+
 function mergeOptions(preferred = [], defaults = []) {
   return [...new Set([
     ...preferred.filter(Boolean),
@@ -57,7 +59,7 @@ export function buildManifest(options, catalogs) {
 
   return {
     id: options.addon_id,
-    version: options.addon_version || '1.0.9',
+    version: options.addon_version || BUILD_INFO.version,
     name: options.addon_name,
     description: 'Local Stremio addon for CSFD movie catalogs',
     resources: [
