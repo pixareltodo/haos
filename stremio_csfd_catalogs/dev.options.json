@@ -1,6 +1,6 @@
 {
-  "addon_version": "1.0.5",
-  "addon_build_signature": "1.0.5-trakt-test-2026-05-03",
+  "addon_version": "1.0.6",
+  "addon_build_signature": "1.0.6-trakt-cloudflare-fix-2026-05-03",
   "host_ip": "127.0.0.1",
   "http_enabled": true,
   "http_port": 7010,
