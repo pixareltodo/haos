@@ -10,7 +10,7 @@ import { CsvFileProvider } from './providers/CsvFileProvider.js';
 import { ExternalScriptProvider } from './providers/ExternalScriptProvider.js';
 import { applyPostFilter } from './filters/postFilter.js';
 import { mapDetailToMeta, mapListItemToMeta } from './mappers/stremioMapper.js';
-import { normalizeSearchText, parseMetaId } from '../utils/urlUtils.js';
+import { normalizeDelimitedText, normalizeSearchText, parseMetaId } from '../utils/urlUtils.js';
 
 const PAGE_SIZE = 100;
 const PREFETCH_HEAD_COUNT = 12;
@@ -73,6 +73,136 @@ function matchesSearch(item, searchQuery) {
   ].map(normalizeSearchText).filter(Boolean);
 
   return haystacks.some((value) => value.includes(searchQuery));
+}
+
+function normalizeFilterValue(value) {
+  return normalizeSearchText(value);
+}
+
+function getItemGenres(item, detail = null) {
+  return detail?.genres?.length
+    ? detail.genres
+    : normalizeDelimitedText(item?.genre);
+}
+
+function getItemCountries(item, detail = null) {
+  if (Array.isArray(detail?.origins) && detail.origins.length) {
+    return detail.origins;
+  }
+
+  return normalizeDelimitedText(item?.origin);
+}
+
+function getItemType(item, detail = null) {
+  return detail?.type || item?.typeLabel || 'Film';
+}
+
+function matchesSingleValueFilter(candidates, requestedValue) {
+  if (!requestedValue) {
+    return true;
+  }
+
+  const expected = normalizeFilterValue(requestedValue);
+  return candidates
+    .map(normalizeFilterValue)
+    .filter(Boolean)
+    .some((candidate) => candidate === expected);
+}
+
+function matchesYearFilter(item, detail, requestedYear) {
+  if (!requestedYear) {
+    return true;
+  }
+
+  const year = parseYear(detail?.year || item?.year);
+  if (!year) {
+    return false;
+  }
+
+  if (/^\d{4}$/.test(requestedYear)) {
+    return year === Number(requestedYear);
+  }
+
+  const normalized = `${requestedYear}`.trim().toLowerCase();
+  if (/^\d{4}s$/.test(normalized)) {
+    const decade = Number(normalized.slice(0, 4));
+    return year >= decade && year <= (decade + 9);
+  }
+
+  if (normalized === 'older') {
+    return year < 1980;
+  }
+
+  return true;
+}
+
+function matchesFutureFilter(item, requestedFuture) {
+  if (!requestedFuture || requestedFuture === 'include') {
+    return true;
+  }
+
+  if (requestedFuture === 'exclude') {
+    return !isFutureItem(item);
+  }
+
+  if (requestedFuture === 'only') {
+    return isFutureItem(item);
+  }
+
+  return true;
+}
+
+function isMatchedItem(item, detail = null) {
+  const stremioId = detail?.stremioId || item?.stremioId || '';
+  const imdbId = detail?.imdbId || '';
+  return Boolean(imdbId || (stremioId && !`${stremioId}`.startsWith('csfd:')));
+}
+
+function matchesMatchedFilter(item, detail, requestedMatched) {
+  if (!requestedMatched || requestedMatched === 'all') {
+    return true;
+  }
+
+  const matched = isMatchedItem(item, detail);
+  if (requestedMatched === 'only') {
+    return matched;
+  }
+
+  if (requestedMatched === 'unmatched') {
+    return !matched;
+  }
+
+  return true;
+}
+
+function sortCatalogItems(items, sortMode) {
+  const mode = `${sortMode || ''}`.trim().toLowerCase();
+  if (!mode || mode === 'default') {
+    return items;
+  }
+
+  const sorted = [...items];
+  if (mode === 'year_desc') {
+    sorted.sort((left, right) => (parseYear(right.year) || 0) - (parseYear(left.year) || 0) || (left.order || 0) - (right.order || 0));
+    return sorted;
+  }
+
+  if (mode === 'year_asc') {
+    sorted.sort((left, right) => (parseYear(left.year) || 0) - (parseYear(right.year) || 0) || (left.order || 0) - (right.order || 0));
+    return sorted;
+  }
+
+  if (mode === 'name_asc') {
+    sorted.sort((left, right) => `${left.title || ''}`.localeCompare(`${right.title || ''}`, 'cs'));
+    return sorted;
+  }
+
+  if (mode === 'name_desc') {
+    sorted.sort((left, right) => `${right.title || ''}`.localeCompare(`${left.title || ''}`, 'cs'));
+    return sorted;
+  }
+
+  return items;
 }
 
 export class CsfdCatalogManager {
@@ -451,16 +581,61 @@ export class CsfdCatalogManager {
     item.background = detail.background || item.background || item.poster || '';
   }
 
-  async getCatalogMetas(catalogId, skip = 0, search = '') {
+  async getCatalogMetas(catalogId, extras = {}) {
     const catalogConfig = this.getCatalogById(catalogId);
     if (!catalogConfig) {
       return [];
     }
 
+    const {
+      skip = 0,
+      search = '',
+      genre = '',
+      country = '',
+      type = '',
+      year = '',
+      future = '',
+      matched = '',
+      sort = ''
+    } = extras;
     const normalizedSearch = normalizeSearchText(search);
     const state = await this.ensureCatalogState(catalogId);
-    const filteredItems = (state?.items || []).filter((item) => matchesSearch(item, normalizedSearch));
-    const pageItems = filteredItems.slice(skip, skip + PAGE_SIZE);
+    const filterEvaluations = [];
+    for (const item of (state?.items || [])) {
+      if (!matchesSearch(item, normalizedSearch)) {
+        continue;
+      }
+
+      const cachedDetail = await this.cache.readMovie(catalogId, item.csfdId);
+      if (!matchesSingleValueFilter(getItemGenres(item, cachedDetail), genre)) {
+        continue;
+      }
+
+      if (!matchesSingleValueFilter(getItemCountries(item, cachedDetail), country)) {
+        continue;
+      }
+
+      if (!matchesSingleValueFilter([getItemType(item, cachedDetail)], type)) {
+        continue;
+      }
+
+      if (!matchesYearFilter(item, cachedDetail, year)) {
+        continue;
+      }
+
+      if (!matchesFutureFilter(item, future)) {
+        continue;
+      }
+
+      if (!matchesMatchedFilter(item, cachedDetail, matched)) {
+        continue;
+      }
+
+      filterEvaluations.push(item);
+    }
+
+    const orderedItems = sortCatalogItems(filterEvaluations, sort);
+    const pageItems = orderedItems.slice(skip, skip + PAGE_SIZE);
     await this.warmCatalogPage(catalogConfig, pageItems, normalizedSearch);
     this.startBackgroundHydration(catalogConfig, state?.items || [], normalizedSearch ? 'search-browse' : 'catalog-browse');
 
@@ -671,10 +846,7 @@ export class CsfdCatalogManager {
       type: catalog.stremio_type,
       id: catalog.id,
       name: catalog.name,
-      extra: [
-        { name: 'search', isRequired: false },
-        { name: 'skip', isRequired: false }
-      ]
+      post_filter: catalog.post_filter
     }));
   }
 
