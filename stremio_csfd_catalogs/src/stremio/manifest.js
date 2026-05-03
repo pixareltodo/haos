@@ -1,13 +1,23 @@
+function mergeOptions(preferred = [], defaults = []) {
+  return [...new Set([
+    ...preferred.filter(Boolean),
+    ...defaults.filter(Boolean)
+  ])];
+}
+
 function buildCatalogExtras(catalog) {
-  const genreOptions = catalog?.post_filter?.required_genres?.length
-    ? catalog.post_filter.required_genres
-    : ['Pohadka', 'Rodinny', 'Fantasy'];
-  const countryOptions = catalog?.post_filter?.allowed_origins?.length
-    ? catalog.post_filter.allowed_origins
-    : ['Cesko', 'Slovensko', 'Ceskoslovensko'];
-  const typeOptions = catalog?.post_filter?.allowed_types?.length
-    ? catalog.post_filter.allowed_types
-    : ['Film', 'TV film', 'Serial'];
+  const genreOptions = mergeOptions(
+    catalog?.post_filter?.required_genres || [],
+    ['Pohadka', 'Rodinny', 'Fantasy', 'Dobrodruzny', 'Komedie', 'Animovany', 'Muzikal']
+  );
+  const countryOptions = mergeOptions(
+    catalog?.post_filter?.allowed_origins || [],
+    ['Cesko', 'Slovensko', 'Ceskoslovensko', 'Nemecko', 'Polsko']
+  );
+  const typeOptions = mergeOptions(
+    catalog?.post_filter?.allowed_types || [],
+    ['Film', 'TV film', 'Serial', 'Miniserie']
+  );
 
   return [
     { name: 'search', isRequired: false },
@@ -47,7 +57,7 @@ export function buildManifest(options, catalogs) {
 
   return {
     id: options.addon_id,
-    version: options.addon_version || '1.0.8',
+    version: options.addon_version || '1.0.9',
     name: options.addon_name,
     description: 'Local Stremio addon for CSFD movie catalogs',
     resources: [
