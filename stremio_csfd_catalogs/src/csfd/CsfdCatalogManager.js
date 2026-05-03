@@ -2,6 +2,8 @@ import { CsfdCache } from './CsfdCache.js';
 import { CsfdApiClient } from './CsfdApiClient.js';
 import { CinemetaMatcher } from './CinemetaMatcher.js';
 import { TmdbClient } from './TmdbClient.js';
+import { TraktClient } from '../trakt/TraktClient.js';
+import { TraktAuthStore } from '../trakt/TraktAuthStore.js';
 import { CsfdHtmlListProvider } from './providers/CsfdHtmlListProvider.js';
 import { JsonFileProvider } from './providers/JsonFileProvider.js';
 import { CsvFileProvider } from './providers/CsvFileProvider.js';
@@ -81,6 +83,7 @@ export class CsfdCatalogManager {
     this.apiClient = new CsfdApiClient(options, logger);
     this.matcher = new CinemetaMatcher({ logger });
     this.tmdbClient = new TmdbClient(options, logger);
+    this.traktClient = new TraktClient(options, logger, new TraktAuthStore(options.cacheDir));
     this.catalogStates = new Map();
     this.catalogStatuses = new Map();
     this.refreshTimers = [];
@@ -550,15 +553,15 @@ export class CsfdCatalogManager {
     }
 
     let tmdbMatch = null;
+    const aliases = Array.isArray(detail?.titlesOther)
+      ? detail.titlesOther.map((entry) => entry?.title).filter(Boolean)
+      : [];
     try {
       if (cinemetaMatch?.imdbId) {
         tmdbMatch = await this.tmdbClient.findByImdbId(cinemetaMatch.imdbId, catalogType);
       }
 
       if (!tmdbMatch) {
-        const aliases = Array.isArray(detail?.titlesOther)
-          ? detail.titlesOther.map((entry) => entry?.title).filter(Boolean)
-          : [];
         tmdbMatch = await this.tmdbClient.searchByText(
           detail?.title || item?.title || '',
           detail?.year || item?.year || '',
@@ -575,19 +578,43 @@ export class CsfdCatalogManager {
       });
     }
 
+    let traktMatch = null;
+    try {
+      if (!cinemetaMatch?.imdbId && !tmdbMatch?.imdbId) {
+        traktMatch = await this.traktClient.resolveMovie(
+          detail?.title || item?.title || '',
+          detail?.year || item?.year || '',
+          aliases
+        );
+      }
+
+      if (!tmdbMatch && traktMatch?.tmdbId) {
+        tmdbMatch = await this.tmdbClient.fetchDetails(traktMatch.tmdbId, catalogType);
+      }
+    }
+    catch (error) {
+      this.logger.warn('Trakt enrichment failed', {
+        csfdId: detail?.id,
+        title: detail?.title || item?.title || '',
+        error: error.message
+      });
+    }
+
     const enriched = {
       ...detail,
-      stremioId: cinemetaMatch?.stremioId || tmdbMatch?.imdbId || detail?.stremioId || `csfd:${detail.id}`,
-      imdbId: cinemetaMatch?.imdbId || tmdbMatch?.imdbId || detail?.imdbId || null,
-      tmdbId: tmdbMatch?.tmdbId || detail?.tmdbId || null,
+      stremioId: cinemetaMatch?.stremioId || tmdbMatch?.imdbId || traktMatch?.imdbId || detail?.stremioId || `csfd:${detail.id}`,
+      imdbId: cinemetaMatch?.imdbId || tmdbMatch?.imdbId || traktMatch?.imdbId || detail?.imdbId || null,
+      tmdbId: tmdbMatch?.tmdbId || traktMatch?.tmdbId || detail?.tmdbId || null,
       tmdbMediaType: tmdbMatch?.tmdbMediaType || detail?.tmdbMediaType || (catalogType === 'series' ? 'tv' : 'movie'),
-      matchedTitle: cinemetaMatch?.matchedName || detail?.matchedTitle || tmdbMatch?.title || '',
-      matchedYear: cinemetaMatch?.matchedYear || detail?.matchedYear || detail?.year || '',
+      matchedTitle: cinemetaMatch?.matchedName || detail?.matchedTitle || tmdbMatch?.title || traktMatch?.title || '',
+      matchedYear: cinemetaMatch?.matchedYear || detail?.matchedYear || traktMatch?.year || detail?.year || '',
       idResolutionSource: cinemetaMatch?.stremioId
         ? 'cinemeta'
         : tmdbMatch?.imdbId
           ? 'tmdb'
-          : 'csfd-fallback',
+          : traktMatch?.imdbId
+            ? 'trakt'
+            : 'csfd-fallback',
       enrichmentVersion: ENRICHMENT_VERSION,
       idResolutionAttemptedAt: new Date().toISOString(),
       trailersResolvedAt: new Date().toISOString(),
@@ -614,6 +641,15 @@ export class CsfdCatalogManager {
         stremioId: tmdbMatch.imdbId,
         imdbId: tmdbMatch.imdbId,
         tmdbId: tmdbMatch.tmdbId,
+        title: detail.title
+      });
+    }
+    else if (traktMatch?.imdbId) {
+      this.logger.info('Resolved Stremio ID from Trakt for CSFD item', {
+        csfdId: detail.id,
+        stremioId: traktMatch.imdbId,
+        imdbId: traktMatch.imdbId,
+        tmdbId: traktMatch.tmdbId,
         title: detail.title
       });
     }
