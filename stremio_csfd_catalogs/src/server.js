@@ -13,6 +13,7 @@ import { createCatalogRouter } from './stremio/catalogRoutes.js';
 import { createMetaRouter } from './stremio/metaRoutes.js';
 import { createAdminRouter } from './admin/csfdAdminRoutes.js';
 import { createTraktAdminRouter } from './admin/traktAdminRoutes.js';
+import { BUILD_INFO } from './config/buildInfo.js';
 
 function createApp(options, catalogManager, traktClient) {
   const app = express();
@@ -40,8 +41,8 @@ function createApp(options, catalogManager, traktClient) {
     res.json({
       ok: true,
       addon: options.addon_name,
-      version: options.addon_version || '1.0.8',
-      buildSignature: options.addon_build_signature || '1.0.8-catalog-filters-2026-05-03',
+      version: options.addon_version || BUILD_INFO.version,
+      buildSignature: options.addon_build_signature || BUILD_INFO.buildSignature,
       catalogs: await catalogManager.getStatus()
     });
   });
@@ -93,8 +94,8 @@ async function resolveHttpsCredentials(options) {
 async function start() {
   const options = await loadAddonOptions();
   logger.info('Addon build info', {
-    version: options.addon_version || '1.0.8',
-    buildSignature: options.addon_build_signature || '1.0.8-catalog-filters-2026-05-03'
+    version: options.addon_version || BUILD_INFO.version,
+    buildSignature: options.addon_build_signature || BUILD_INFO.buildSignature
   });
   await ensureDir(options.cacheDir);
   await ensureDir(options.shareDir);
