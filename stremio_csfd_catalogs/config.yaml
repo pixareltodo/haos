@@ -1,5 +1,5 @@
 name: "Stremio CSFD katalogy"
-version: "1.0.11"
+version: "1.0.12"
 slug: "stremio_csfd_catalogs"
 description: "Lokalni Stremio addon pro katalogy filmu z CSFD"
 arch:
