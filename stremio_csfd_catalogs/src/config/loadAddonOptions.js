@@ -111,6 +111,8 @@ export async function loadAddonOptions() {
 
   return {
     ...merged,
+    addon_version: DEFAULTS.addon_version,
+    addon_build_signature: DEFAULTS.addon_build_signature,
     projectRoot,
     cacheDir,
     shareDir,
