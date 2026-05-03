@@ -1,0 +1,10 @@
+node_modules
+data
+share
+*.html
+*.csv
+*.json
+!package*.json
+!dev.options.json
+*.mjs
+*.ps1
