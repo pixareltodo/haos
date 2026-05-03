@@ -1,11 +1,12 @@
 {
   "name": "stremio-csfd-catalogs",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "Standalone Home Assistant OS addon exposing Stremio catalogs sourced from CSFD lists.",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "sync:version": "node scripts/sync-build-version.mjs"
   },
   "engines": {
     "node": ">=20"
