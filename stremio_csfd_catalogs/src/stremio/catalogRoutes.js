@@ -3,7 +3,14 @@ import express from 'express';
 function parseExtras(extraSegment = '') {
   const extras = {
     skip: 0,
-    search: ''
+    search: '',
+    genre: '',
+    country: '',
+    type: '',
+    year: '',
+    future: '',
+    matched: '',
+    sort: ''
   };
 
   const cleaned = `${extraSegment || ''}`.replace(/\.json$/i, '');
@@ -23,6 +30,34 @@ function parseExtras(extraSegment = '') {
     if (key === 'search') {
       extras.search = decodeURIComponent(value);
     }
+
+    if (key === 'genre') {
+      extras.genre = decodeURIComponent(value);
+    }
+
+    if (key === 'country') {
+      extras.country = decodeURIComponent(value);
+    }
+
+    if (key === 'type') {
+      extras.type = decodeURIComponent(value);
+    }
+
+    if (key === 'year') {
+      extras.year = decodeURIComponent(value);
+    }
+
+    if (key === 'future') {
+      extras.future = decodeURIComponent(value);
+    }
+
+    if (key === 'matched') {
+      extras.matched = decodeURIComponent(value);
+    }
+
+    if (key === 'sort') {
+      extras.sort = decodeURIComponent(value);
+    }
   }
 
   return extras;
@@ -34,8 +69,8 @@ export function createCatalogRouter(catalogManager) {
   router.get('/:type/:catalogId/:extra', async (req, res, next) => {
     try {
       const { type, catalogId, extra = '' } = req.params;
-      const { skip, search } = parseExtras(extra);
-      const metas = await catalogManager.getCatalogMetas(catalogId, skip, search);
+      const extras = parseExtras(extra);
+      const metas = await catalogManager.getCatalogMetas(catalogId, extras);
       res.json({ metas, cacheMaxAge: 3600, staleRevalidate: 3600, type });
     }
     catch (error) {
@@ -46,7 +81,7 @@ export function createCatalogRouter(catalogManager) {
   router.get('/:type/:catalogId.json', async (req, res, next) => {
     try {
       const { type, catalogId } = req.params;
-      const metas = await catalogManager.getCatalogMetas(catalogId, 0, '');
+      const metas = await catalogManager.getCatalogMetas(catalogId, parseExtras(''));
       res.json({ metas, cacheMaxAge: 3600, staleRevalidate: 3600, type });
     }
     catch (error) {
