@@ -23,8 +23,6 @@ map:
     read_only: true
 
 options:
-  addon_version: "1.0.8"
-  addon_build_signature: "1.0.8-catalog-filters-2026-05-03"
   host_ip: "192.168.1.197"
 
   http_enabled: true
@@ -80,8 +78,6 @@ options:
         - "TV film"
 
 schema:
-  addon_version: "str"
-  addon_build_signature: "str"
   host_ip: "str"
 
   http_enabled: "bool"
