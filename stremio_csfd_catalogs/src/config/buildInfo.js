@@ -1,4 +1,4 @@
 export const BUILD_INFO = {
-  version: '1.0.11',
-  buildSignature: '1.0.11-central-build-info-2026-05-03'
+  version: '1.0.12',
+  buildSignature: '1.0.12-trakt-ui-and-match-report-2026-05-04'
 };
