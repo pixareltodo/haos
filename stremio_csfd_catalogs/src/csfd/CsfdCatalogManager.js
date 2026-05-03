@@ -916,6 +916,11 @@ export class CsfdCatalogManager {
 
     const resolvedCount = reportItems.filter((item) => item.resolved).length;
     const unresolvedCount = reportItems.length - resolvedCount;
+    const sourceCounts = reportItems.reduce((accumulator, item) => {
+      const key = item.resolutionSource || 'unknown';
+      accumulator[key] = (accumulator[key] || 0) + 1;
+      return accumulator;
+    }, {});
 
     return {
       catalogId,
@@ -926,6 +931,7 @@ export class CsfdCatalogManager {
       resolvedPercent: reportItems.length
         ? Number(((resolvedCount / reportItems.length) * 100).toFixed(1))
         : 0,
+      sourceCounts,
       items: reportItems
     };
   }
