@@ -1,14 +1,15 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pathExists, readJson } from '../utils/fileUtils.js';
+import { BUILD_INFO } from './buildInfo.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 
 const DEFAULTS = {
-  addon_version: '1.0.8',
-  addon_build_signature: '1.0.8-catalog-filters-2026-05-03',
+  addon_version: BUILD_INFO.version,
+  addon_build_signature: BUILD_INFO.buildSignature,
   host_ip: '127.0.0.1',
   http_enabled: true,
   http_port: 7010,
