@@ -1,6 +1,6 @@
 {
-  "addon_version": "1.0.9",
-  "addon_build_signature": "1.0.9-filter-options-2026-05-03",
+  "addon_version": "1.0.11",
+  "addon_build_signature": "1.0.11-central-build-info-2026-05-03",
   "host_ip": "127.0.0.1",
   "http_enabled": true,
   "http_port": 7010,
