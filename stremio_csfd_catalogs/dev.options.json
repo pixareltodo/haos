@@ -1,0 +1,58 @@
+{
+  "addon_version": "1.0.5",
+  "addon_build_signature": "1.0.5-trakt-test-2026-05-03",
+  "host_ip": "127.0.0.1",
+  "http_enabled": true,
+  "http_port": 7010,
+  "https_enabled": false,
+  "https_port": 7450,
+  "https_auto_self_signed": true,
+  "https_certfile": "/ssl/fullchain.pem",
+  "https_keyfile": "/ssl/privkey.pem",
+  "addon_name": "CSFD katalogy",
+  "addon_id": "community.csfd.catalogs.local",
+  "csfd_enabled": true,
+  "csfd_refresh_on_start": true,
+  "csfd_api_mode": "internal",
+  "trakt_enabled": false,
+  "trakt_client_id": "",
+  "trakt_client_secret": "",
+  "tmdb_enabled": true,
+  "tmdb_api_read_access_token": "",
+  "tmdb_language": "cs-CZ",
+  "tmdb_fallback_language": "en-US",
+  "csfd_detail_concurrency": 2,
+  "csfd_catalog_prefetch_count": 12,
+  "csfd_background_hydration_enabled": true,
+  "csfd_background_hydration_limit": 0,
+  "csfd_list_refresh_interval_hours_default": 24,
+  "csfd_detail_cache_ttl_days": 30,
+  "csfd_request_delay_ms": 800,
+  "csfd_catalogs": [
+    {
+      "id": "csfd_cz_sk_pohadky",
+      "name": "CSFD - ceske a slovenske pohadky",
+      "enabled": true,
+      "source_type": "csfd_html_list",
+      "source_url": "https://www.csfd.cz/podrobne-vyhledavani/?searchParams=rlW0rKOyVwcoZFjmYQVfAS0fVzqyoaWyVwc7VwRvBygqYPVlVwcoKFjvZlV6JmZjKFjvAPV6J10fVaE5pTHvBwA9YPWipzyanJ4vBafvZFV6J10fVwVvBygqYPVmVwcoZFjkBGpfZvjlZwIqYPV0VwcoKFjvqUyjMFV6Z30fVayyLKWsMaWioFV6oaIfoPjvrJIupy90olV6oaIfoPjvpzS0nJ5aK2Mlo20vBz51oTjfVaWuqTyhM190olV6oaIfoPjvqTSaVwcoKFjvLJA0o3VvBygqYPWjMKWzo3WgMKVvBygqYPWxnKWyL3EipvV6J10fVzAioKOip2IlVwcoKFjvp2AlMJIhq3WcqTIlVwcoKFjvLKI0nT9lVwcoKFjvpUWiMUIwqTyiovV6J10fVzAup3EcozpvBygqYPWwnJ5yoJS0o2qlLKObMKVvBygqYPWyMTy0VwcoKFjvp291ozDvBygqYPWmL2Iho2qlLKObrFV6J10fVz1up2fvBygqYPWwo3A0qJ1yplV6J10fVzAiozEcqTyioaZvBygqsD&sort=year",
+      "refresh_interval_hours": 24,
+      "max_pages": 2,
+      "max_items": 100,
+      "stremio_type": "movie",
+      "include_future_titles": false,
+      "filter_enabled": true,
+      "filter_allowed_origins": [
+        "Cesko",
+        "Slovensko",
+        "Ceskoslovensko"
+      ],
+      "filter_required_genres": [
+        "Pohadka"
+      ],
+      "filter_allowed_types": [
+        "Film",
+        "TV film"
+      ]
+    }
+  ]
+}
