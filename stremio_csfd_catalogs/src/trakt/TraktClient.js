@@ -9,8 +9,18 @@ function defaultTestMovie() {
 function buildHeaders(clientId, accessToken = '') {
   const headers = {
     'content-type': 'application/json',
+    accept: 'application/json, text/plain, */*',
+    'accept-language': 'cs-CZ,cs;q=0.9,en;q=0.8',
     'trakt-api-version': '2',
-    'trakt-api-key': clientId
+    'trakt-api-key': clientId,
+    // Cloudflare currently blocks Node's default fetch fingerprint for Trakt.
+    // Sending a browser-like request shape keeps the OAuth device flow usable.
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    origin: 'https://trakt.tv',
+    referer: 'https://trakt.tv/',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty'
   };
 
   if (accessToken) {
