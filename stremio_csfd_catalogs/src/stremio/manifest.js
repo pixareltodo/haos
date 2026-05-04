@@ -59,7 +59,7 @@ export function buildManifest(options, catalogs) {
 
   return {
     id: options.addon_id,
-    version: options.addon_version || BUILD_INFO.version,
+    version: BUILD_INFO.version,
     name: options.addon_name,
     description: 'Local Stremio addon for CSFD movie catalogs',
     resources: [
