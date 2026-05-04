@@ -5,7 +5,7 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/\"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
@@ -96,7 +96,7 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
   const exportDefaultName = catalog.name;
   const exportDefaultDescription = buildListDescription(catalog, preview);
   const authorized = traktStatus.authorized === true;
-  const appendDisabled = !authorized || !traktLists.length;
+  const appendDisabled = !authorized || (!traktLists.length && !message.includes('rucne'));
   const createDisabled = !authorized || !preview.exportable.length;
 
   return `<!doctype html>
@@ -297,7 +297,10 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
               ${traktLists.map((list) => `<option value="${escapeHtml(list.id)}">${escapeHtml(list.name)} (${escapeHtml(list.itemCount)})</option>`).join('')}
             </select>
           </label>
-          <button type="submit" ${appendDisabled ? 'disabled' : ''}>Pridat exportovatelne polozky</button>
+          <label>Rucni slug nebo ID listu
+            <input type="text" name="manualListId" placeholder="napr. moje-pohadky nebo 123456" />
+          </label>
+          <button type="submit">Pridat exportovatelne polozky</button>
         </form>
       </article>
     </section>
@@ -524,7 +527,7 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         message: [
           `${req.query.message || ''}`.trim(),
           context.traktListsError
-            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje.'
+            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje a append jde i rucne pres slug nebo ID.'
             : ''
         ].filter(Boolean).join(' ')
       }));
@@ -572,6 +575,14 @@ export function createTraktExportRouter(catalogManager, traktClient) {
       }));
     }
     catch (error) {
+      if (error?.status === 420) {
+        res.status(420).type('html').send(renderExportResultPage({
+          title: 'Trakt limit uctu pro novy list',
+          message: 'Trakt odmitl vytvoreni noveho listu. Tohle obvykle znamena limit uctu nebo poctu vlastnich listu. Vytvor list rucne primo na Trakt webu a pak do nej pouzij pridani do existujiciho listu.',
+          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
+        }));
+        return;
+      }
       next(error);
     }
   });
@@ -594,17 +605,44 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         return;
       }
 
-      if (context.traktListsError) {
-        res.status(502).type('html').send(renderExportResultPage({
-          title: 'Trakt listy nejsou dostupne',
-          message: 'Existujici Trakt listy se ted nepodarilo nacist. Zkus to prosim znovu pozdeji, nebo misto toho vytvor novy list.',
+      const selectedListId = `${req.body.listId || ''}`.trim();
+      const manualListId = `${req.body.manualListId || ''}`.trim();
+      const listId = manualListId || selectedListId;
+      const targetList = context.traktLists.find((list) => list.id === listId);
+      if (!listId) {
+        res.status(400).type('html').send(renderExportResultPage({
+          title: 'Trakt list neni vybran',
+          message: 'Vyber existujici list nebo zadej rucne jeho slug nebo ID.',
           backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
         }));
         return;
       }
 
-      const listId = `${req.body.listId || ''}`.trim();
-      const targetList = context.traktLists.find((list) => list.id === listId);
+      if (manualListId) {
+        const added = await pushItemsToList(traktClient, listId, context.preview.exportable);
+        res.type('html').send(renderExportResultPage({
+          title: 'Trakt list aktualizovan',
+          message: 'Exportovatelne polozky byly pridany do rucne zadaneho Trakt listu.',
+          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`,
+          details: [
+            { label: 'Katalog', value: context.catalog.name },
+            { label: 'Trakt list', value: listId },
+            { label: 'Pridano polozek', value: `${added}` },
+            { label: 'Preskoceno', value: `${context.preview.skipped.length}` }
+          ]
+        }));
+        return;
+      }
+
+      if (context.traktListsError) {
+        res.status(502).type('html').send(renderExportResultPage({
+          title: 'Trakt listy nejsou dostupne',
+          message: 'Existujici Trakt listy se ted nepodarilo nacist. Zkus to prosim znovu pozdeji, nebo pouzij rucni slug nebo ID listu.',
+          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
+        }));
+        return;
+      }
+
       if (!targetList) {
         res.status(400).type('html').send(renderExportResultPage({
           title: 'Trakt list nenalezen',
