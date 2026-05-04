@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 
-const DEFAULTS = {
+export const DEFAULTS = {
   addon_version: BUILD_INFO.version,
   addon_build_signature: BUILD_INFO.buildSignature,
   host_ip: '127.0.0.1',
@@ -41,7 +41,7 @@ const DEFAULTS = {
   csfd_catalogs: []
 };
 
-function mergeDeep(base, patch) {
+export function mergeDeep(base, patch) {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
     return patch === undefined ? base : patch;
   }
@@ -64,7 +64,7 @@ function mergeDeep(base, patch) {
   return result;
 }
 
-function normalizeCatalog(catalog, defaults) {
+export function normalizeCatalog(catalog, defaults) {
   const legacyFilter = catalog.post_filter || {};
   return {
     id: catalog.id,
@@ -94,31 +94,46 @@ function normalizeCatalog(catalog, defaults) {
   };
 }
 
-export async function loadAddonOptions() {
+export function resolveAddonOptionsSource() {
   const requestedOptionsFile = process.env.ADDON_OPTIONS_FILE;
   const fallbackOptionsFile = path.join(projectRoot, 'dev.options.json');
-  let fileOptions = {};
 
-  if (requestedOptionsFile && await pathExists(requestedOptionsFile)) {
-    fileOptions = await readJson(requestedOptionsFile, {}) || {};
-  }
-  else if (await pathExists(fallbackOptionsFile)) {
-    fileOptions = await readJson(fallbackOptionsFile, {}) || {};
-  }
+  return {
+    projectRoot,
+    requestedOptionsFile,
+    fallbackOptionsFile,
+    optionsFile: requestedOptionsFile || fallbackOptionsFile,
+    cacheDir: process.env.CSFD_CACHE_DIR || path.join(projectRoot, 'data', 'csfd-cache'),
+    shareDir: process.env.CSFD_SHARE_DIR || path.join(projectRoot, 'share', 'csfd-lists')
+  };
+}
 
+export function normalizeAddonOptions(fileOptions = {}, source = resolveAddonOptionsSource()) {
   const merged = mergeDeep(DEFAULTS, fileOptions);
-  const cacheDir = process.env.CSFD_CACHE_DIR || path.join(projectRoot, 'data', 'csfd-cache');
-  const shareDir = process.env.CSFD_SHARE_DIR || path.join(projectRoot, 'share', 'csfd-lists');
 
   return {
     ...merged,
     addon_version: DEFAULTS.addon_version,
     addon_build_signature: DEFAULTS.addon_build_signature,
-    projectRoot,
-    cacheDir,
-    shareDir,
+    projectRoot: source.projectRoot,
+    cacheDir: source.cacheDir,
+    shareDir: source.shareDir,
     csfd_catalogs: (merged.csfd_catalogs || [])
       .filter((catalog) => catalog && catalog.id)
       .map((catalog) => normalizeCatalog(catalog, merged))
   };
+}
+
+export async function loadAddonOptions() {
+  const source = resolveAddonOptionsSource();
+  let fileOptions = {};
+
+  if (source.requestedOptionsFile && await pathExists(source.requestedOptionsFile)) {
+    fileOptions = await readJson(source.requestedOptionsFile, {}) || {};
+  }
+  else if (await pathExists(source.fallbackOptionsFile)) {
+    fileOptions = await readJson(source.fallbackOptionsFile, {}) || {};
+  }
+
+  return normalizeAddonOptions(fileOptions, source);
 }
