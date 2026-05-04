@@ -80,6 +80,7 @@ export function normalizeCatalog(catalog, defaults) {
     max_items: Number(catalog.max_items || 500),
     stremio_type: catalog.stremio_type === 'series' ? 'series' : 'movie',
     include_future_titles: catalog.include_future_titles !== false,
+    matched_only_default: catalog.matched_only_default === true,
     post_filter: mergeDeep({
       enabled: false,
       allowed_origins: [],
