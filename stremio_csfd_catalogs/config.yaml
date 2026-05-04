@@ -1,7 +1,7 @@
 name: "Stremio CSFD katalogy"
-version: "1.0.19"
+version: "1.0.20"
 slug: "stremio_csfd_catalogs"
-description: "Lokalni Stremio addon pro katalogy filmu z CSFD"
+description: "Samostatny HAOS addon, ktery z CSFD zdroju vytvari vlastni Stremio katalogy s detailem filmu a exportem do Trakt"
 arch:
   - aarch64
 init: false
