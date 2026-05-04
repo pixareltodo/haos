@@ -411,7 +411,15 @@ export class CsfdCatalogManager {
     return ageMs < ttlMs;
   }
 
-  isHydratedEnough(detail) {
+  async getResolutionContextSignature() {
+    return JSON.stringify({
+      enrichmentVersion: ENRICHMENT_VERSION,
+      tmdbEnabled: this.tmdbClient.enabled,
+      traktMode: await this.traktClient.getResolutionMode()
+    });
+  }
+
+  async isHydratedEnough(detail) {
     if (!this.isFreshEnough(detail)) {
       return false;
     }
@@ -425,6 +433,11 @@ export class CsfdCatalogManager {
     }
 
     if (this.tmdbClient.enabled && !detail?.trailersResolvedAt) {
+      return false;
+    }
+
+    const currentContextSignature = await this.getResolutionContextSignature();
+    if (detail?.idResolutionContextSignature !== currentContextSignature) {
       return false;
     }
 
@@ -512,7 +525,7 @@ export class CsfdCatalogManager {
       processed += 1;
       try {
         const cached = await this.cache.readMovie(catalogConfig.id, item.csfdId);
-        if (this.isHydratedEnough(cached)) {
+        if (await this.isHydratedEnough(cached)) {
           this.mergeResolvedItemData(catalogConfig.id, item.csfdId, cached);
           skipped += 1;
           continue;
@@ -547,7 +560,7 @@ export class CsfdCatalogManager {
 
     await Promise.all(warmItems.map(async (item) => {
       const cached = await this.cache.readMovie(catalogConfig.id, item.csfdId);
-      if (this.isHydratedEnough(cached)) {
+      if (await this.isHydratedEnough(cached)) {
         this.mergeResolvedItemData(catalogConfig.id, item.csfdId, cached);
         return;
       }
@@ -708,9 +721,11 @@ export class CsfdCatalogManager {
   }
 
   async enrichDetail(detail, catalogType, item) {
+    const resolutionContextSignature = await this.getResolutionContextSignature();
     if (detail?.idResolutionAttemptedAt
       && detail?.stremioId
       && (detail?.enrichmentVersion || 0) >= ENRICHMENT_VERSION
+      && detail?.idResolutionContextSignature === resolutionContextSignature
       && (detail?.trailersResolvedAt || !this.tmdbClient.enabled)) {
       return detail;
     }
@@ -791,6 +806,7 @@ export class CsfdCatalogManager {
             ? 'trakt'
             : 'csfd-fallback',
       enrichmentVersion: ENRICHMENT_VERSION,
+      idResolutionContextSignature: resolutionContextSignature,
       idResolutionAttemptedAt: new Date().toISOString(),
       trailersResolvedAt: new Date().toISOString(),
       poster: detail?.poster || cinemetaMatch?.poster || tmdbMatch?.poster || '',
