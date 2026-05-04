@@ -14,7 +14,7 @@ Po spusteni addon zpristupni hlavne:
 - pro Stremio vraci `catalog` a `meta` endpointy
 - snazi se ke kazdemu filmu dohledat i standardni filmove ID, aby melo vetsi sanci najit streamy z dalsich addon zdroju
 - umi per katalog exportovat sparovane polozky do Trakt listu
-- umi per katalog nastavit, jestli se ma ve vychozim zobrazeni ukazovat vse, nebo jen sparovane filmy
+- umi per katalog vynutit zobrazeni jen sparovanych filmu, pokud nechces v katalogu videt fallback tituly bez standardniho ID
 
 ## Jak se instaluje
 
@@ -23,6 +23,7 @@ Po spusteni addon zpristupni hlavne:
 3. Vypln addon konfiguraci v HAOS, hlavne zdroje v `csfd_catalogs`.
 4. Spust addon.
 5. Do Stremia nebo Nuvio pridej manifest z adresy `http://<HA-IP>:7010/manifest.json`.
+6. V detailu addonu v HAOS muzes pouzit i tlacitko pro otevreni weboveho rozcestniku addonu.
 
 ## Jak se spravuje
 
