@@ -155,6 +155,7 @@ function renderCatalogListPage({ options, message = '' }) {
             <dt>Typ</dt><dd>${escapeHtml(catalog.stremio_type)}</dd>
             <dt>Refresh</dt><dd>${escapeHtml(catalog.refresh_interval_hours)} h</dd>
             <dt>Budouci tituly</dt><dd>${catalog.include_future_titles ? 'ano' : 'ne'}</dd>
+            <dt>Jen sparovane</dt><dd>${catalog.matched_only_default ? 'ano' : 'ne'}</dd>
             <dt>Filtr</dt><dd>${catalog.post_filter?.enabled ? 'zapnuty' : 'vypnuty'}</dd>
           </dl>
           <div class="actions">
@@ -236,6 +237,7 @@ function renderCatalogFormPage({ mode, catalog, defaults, message = '' }) {
         </div>
         <label class="checkbox"><input type="checkbox" name="enabled" ${formCatalog.enabled !== false ? 'checked' : ''} /> Katalog je zapnuty</label>
         <label class="checkbox"><input type="checkbox" name="include_future_titles" ${formCatalog.include_future_titles !== false ? 'checked' : ''} /> Zahrnout i budouci nebo jeste nevydane tituly</label>
+        <label class="checkbox"><input type="checkbox" name="matched_only_default" ${formCatalog.matched_only_default === true ? 'checked' : ''} /> Ve Stremio katalogu vychozi zobrazeni jen pro sparovane filmy</label>
         <label class="checkbox"><input type="checkbox" name="filter_enabled" ${formCatalog.post_filter?.enabled ? 'checked' : ''} /> Zapnout post-filter katalogu</label>
         <div class="grid">
           <label>Povolene puvody
@@ -274,6 +276,7 @@ function buildCatalogFromBody(body, defaults) {
     max_items: parseOptionalNumber(body.max_items, defaults.max_items),
     stremio_type: `${body.stremio_type || 'movie'}`.trim() === 'series' ? 'series' : 'movie',
     include_future_titles: parseBool(body.include_future_titles),
+    matched_only_default: parseBool(body.matched_only_default),
     filter_enabled: parseBool(body.filter_enabled),
     filter_allowed_origins: splitListValue(body.filter_allowed_origins),
     filter_required_genres: splitListValue(body.filter_required_genres),
