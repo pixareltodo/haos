@@ -13,6 +13,7 @@ import { createCatalogRouter } from './stremio/catalogRoutes.js';
 import { createMetaRouter } from './stremio/metaRoutes.js';
 import { createAdminRouter } from './admin/csfdAdminRoutes.js';
 import { createTraktAdminRouter } from './admin/traktAdminRoutes.js';
+import { createHomeRouter } from './admin/homeRoutes.js';
 import { BUILD_INFO } from './config/buildInfo.js';
 
 function createApp(options, catalogManager, traktClient) {
@@ -32,6 +33,7 @@ function createApp(options, catalogManager, traktClient) {
   });
 
   app.use(express.json());
+  app.use(createHomeRouter(options, catalogManager, traktClient));
 
   app.get('/manifest.json', (_req, res) => {
     res.json(buildManifest(options, catalogManager.getManifestCatalogs()));
