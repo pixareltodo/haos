@@ -198,6 +198,23 @@ export class TraktClient {
     return Boolean(this.clientId && this.clientSecret);
   }
 
+  async getAuthorizedAccessToken() {
+    if (!this.enabled) {
+      throw new Error('Trakt integration is disabled.');
+    }
+
+    if (!this.configured) {
+      throw new Error('Trakt client_id/client_secret is not configured.');
+    }
+
+    const token = await this.refreshAccessTokenIfNeeded();
+    if (!token?.access_token) {
+      throw new Error('Trakt account is not authorized yet.');
+    }
+
+    return token.access_token;
+  }
+
   async getResolutionMode() {
     if (!this.enabled) {
       return 'disabled';
@@ -410,6 +427,43 @@ export class TraktClient {
           }
         : null
     };
+  }
+
+  async getUserLists() {
+    const accessToken = await this.getAuthorizedAccessToken();
+    return this.fetchJson(`${this.baseUrl}/users/me/lists`, {
+      accessToken
+    });
+  }
+
+  async createPersonalList({
+    name,
+    description = '',
+    privacy = 'private'
+  } = {}) {
+    const accessToken = await this.getAuthorizedAccessToken();
+    return this.fetchJson(`${this.baseUrl}/users/me/lists`, {
+      method: 'POST',
+      accessToken,
+      body: {
+        name,
+        description,
+        privacy,
+        display_numbers: false,
+        allow_comments: false,
+        sort_by: 'rank',
+        sort_how: 'asc'
+      }
+    });
+  }
+
+  async addItemsToList(listId, payload) {
+    const accessToken = await this.getAuthorizedAccessToken();
+    return this.fetchJson(`${this.baseUrl}/users/me/lists/${encodeURIComponent(listId)}/items`, {
+      method: 'POST',
+      accessToken,
+      body: payload
+    });
   }
 
   async searchMovie(title, year = null, accessToken = '') {
