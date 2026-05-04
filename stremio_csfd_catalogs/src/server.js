@@ -3,6 +3,7 @@ import https from 'node:https';
 import express from 'express';
 import selfsigned from 'selfsigned';
 import { loadAddonOptions } from './config/loadAddonOptions.js';
+import { AddonConfigStore } from './config/AddonConfigStore.js';
 import { logger } from './utils/logger.js';
 import { ensureDir, pathExists } from './utils/fileUtils.js';
 import { CsfdCatalogManager } from './csfd/CsfdCatalogManager.js';
@@ -14,10 +15,11 @@ import { createMetaRouter } from './stremio/metaRoutes.js';
 import { createAdminRouter } from './admin/csfdAdminRoutes.js';
 import { createTraktAdminRouter } from './admin/traktAdminRoutes.js';
 import { createTraktExportRouter } from './admin/traktExportRoutes.js';
+import { createCatalogConfigRouter } from './admin/catalogConfigRoutes.js';
 import { createHomeRouter } from './admin/homeRoutes.js';
 import { BUILD_INFO } from './config/buildInfo.js';
 
-function createApp(options, catalogManager, traktClient) {
+function createApp(options, catalogManager, traktClient, configStore) {
   const app = express();
 
   app.use((req, res, next) => {
@@ -54,6 +56,7 @@ function createApp(options, catalogManager, traktClient) {
   app.use('/catalog', createCatalogRouter(catalogManager));
   app.use('/meta', createMetaRouter(catalogManager));
   app.use('/admin/csfd', createAdminRouter(catalogManager));
+  app.use('/admin/config', createCatalogConfigRouter(configStore));
   app.use('/admin/trakt', createTraktAdminRouter(traktClient));
   app.use('/admin/trakt/export', createTraktExportRouter(catalogManager, traktClient));
 
@@ -97,6 +100,7 @@ async function resolveHttpsCredentials(options) {
 }
 
 async function start() {
+  const configStore = new AddonConfigStore();
   const options = await loadAddonOptions();
   logger.info('Addon build info', {
     version: BUILD_INFO.version,
@@ -111,7 +115,7 @@ async function start() {
   const traktClient = new TraktClient(options, logger, new TraktAuthStore(options.cacheDir));
   await catalogManager.init();
 
-  const app = createApp(options, catalogManager, traktClient);
+  const app = createApp(options, catalogManager, traktClient, configStore);
 
   if (options.http_enabled) {
     app.listen(options.http_port, '0.0.0.0', () => {
