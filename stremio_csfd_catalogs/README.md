@@ -14,6 +14,7 @@ Po spusteni addon zpristupni hlavne:
 - pro Stremio vraci `catalog` a `meta` endpointy
 - snazi se ke kazdemu filmu dohledat i standardni filmove ID, aby melo vetsi sanci najit streamy z dalsich addon zdroju
 - umi per katalog exportovat sparovane polozky do Trakt listu
+- umi per katalog nastavit, jestli se ma ve vychozim zobrazeni ukazovat vse, nebo jen sparovane filmy
 
 ## Jak se instaluje
 
