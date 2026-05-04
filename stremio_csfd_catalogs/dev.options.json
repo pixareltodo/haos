@@ -1,6 +1,6 @@
 {
-  "addon_version": "1.0.19",
-  "addon_build_signature": "1.0.19-web-catalog-config-and-safe-trakt-export-2026-05-04",
+  "addon_version": "1.0.20",
+  "addon_build_signature": "1.0.20-trakt-list-id-and-app-copy-2026-05-04",
   "host_ip": "127.0.0.1",
   "http_enabled": true,
   "http_port": 7010,
