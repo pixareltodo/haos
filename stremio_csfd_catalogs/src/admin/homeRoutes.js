@@ -26,6 +26,7 @@ function renderCatalogCards(statuses, catalogs) {
         <a class="button secondary" href="/catalog/${encodeURIComponent(catalog.stremio_type)}/${encodeURIComponent(catalog.id)}.json" target="_blank" rel="noreferrer">Katalog JSON</a>
         <a class="button secondary" href="/admin/csfd/status/${encodeURIComponent(catalog.id)}" target="_blank" rel="noreferrer">Status JSON</a>
         <a class="button secondary" href="/admin/csfd/matches/${encodeURIComponent(catalog.id)}" target="_blank" rel="noreferrer">Match report</a>
+        <a class="button secondary" href="/admin/trakt/export/${encodeURIComponent(catalog.id)}">Trakt export</a>
       </div>
     </article>`;
   }).join('\n');
@@ -179,7 +180,7 @@ function renderDashboard({
 <body>
   <main class="wrap">
     <section class="hero">
-      <div class="pill">Verze ${escapeHtml(BUILD_INFO.version)} · ${escapeHtml(BUILD_INFO.buildSignature)}</div>
+      <div class="pill">Verze ${escapeHtml(BUILD_INFO.version)} - ${escapeHtml(BUILD_INFO.buildSignature)}</div>
       <h1>${escapeHtml(options.addon_name)}</h1>
       <p class="lead">Jedno centralni misto pro manifest, diagnostiku, Trakt a katalogy. Vsechno se vykresluje z aktualni konfigurace a runtime stavu addonu, bez paralelnich konfiguracnich struktur.</p>
       <div class="actions">
@@ -204,6 +205,7 @@ function renderDashboard({
           <li>manifest pro Stremio a Nuvio</li>
           <li>stav katalogu a jejich refresh</li>
           <li>Trakt autorizaci a test</li>
+          <li>per-katalog Trakt export bez paralelni konfigurace</li>
           <li>match report s informaci, jestli pomohl TMDB, Cinemeta nebo Trakt</li>
         </ul>
       </article>
@@ -213,6 +215,7 @@ function renderDashboard({
           <li>v <code>/admin/csfd/matches/&lt;catalogId&gt;</code> uvidis <code>resolutionSource: "trakt"</code></li>
           <li>v souhrnu uvidis i <code>sourceCounts.trakt</code></li>
           <li>po zmene Trakt stavu se nespolehlive stare match cache znovu prepocitaji</li>
+          <li>z kazdeho katalogu jde vytvorit nebo doplnit vlastni Trakt list</li>
         </ul>
       </article>
       <article class="card">
@@ -220,6 +223,7 @@ function renderDashboard({
         <div class="actions compact">
           <a class="button secondary" href="/admin/trakt/status" target="_blank" rel="noreferrer">Trakt status</a>
           <a class="button secondary" href="/admin/trakt/test?title=Certoviny&year=2017" target="_blank" rel="noreferrer">Trakt test: Certoviny</a>
+          ${firstCatalog ? `<a class="button secondary" href="/admin/trakt/export/${encodeURIComponent(firstCatalog.id)}">Trakt export: ${escapeHtml(firstCatalog.name)}</a>` : ''}
           ${firstCatalog ? `<a class="button secondary" href="/catalog/${encodeURIComponent(firstCatalog.stremio_type)}/${encodeURIComponent(firstCatalog.id)}.json" target="_blank" rel="noreferrer">Katalog JSON</a>` : ''}
         </div>
       </article>
