@@ -17,6 +17,12 @@ function chunk(items, size) {
   return result;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 function deduplicateExportItems(items) {
   const seen = new Set();
   const result = [];
@@ -74,6 +80,14 @@ function buildExportPayloadItems(report) {
     exportable: deduplicateExportItems(exportable),
     skipped
   };
+}
+
+function buildListDescription(catalog, preview) {
+  return [
+    `Export katalogu ${catalog.name} z addonu CSFD katalogy.`,
+    `Exportovatelnych polozek: ${preview.exportable.length}.`,
+    `Preskocenych polozek bez standardniho ID: ${preview.skipped.length}.`
+  ].join(' ');
 }
 
 function renderPreviewList(items, emptyText) {
@@ -474,11 +488,40 @@ function buildTraktMoviePayload(items) {
 }
 
 async function pushItemsToList(traktClient, listId, items) {
+  const chunks = chunk(items, 100);
   let added = 0;
-  for (const currentChunk of chunk(items, 100)) {
+  for (let index = 0; index < chunks.length; index += 1) {
+    const currentChunk = chunks[index];
     const payload = buildTraktMoviePayload(currentChunk);
-    const result = await addItemsToList(traktClient, listId, payload);
-    added += Number(result?.added?.movies || currentChunk.length || 0);
+    const retryDelays = [0, 4000, 9000];
+    let lastError = null;
+
+    for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
+      if (retryDelays[attempt] > 0) {
+        await sleep(retryDelays[attempt]);
+      }
+
+      try {
+        const result = await addItemsToList(traktClient, listId, payload);
+        added += Number(result?.added?.movies || currentChunk.length || 0);
+        lastError = null;
+        break;
+      }
+      catch (error) {
+        lastError = error;
+        if (error?.status !== 420 || attempt === retryDelays.length - 1) {
+          throw error;
+        }
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+
+    if (index < chunks.length - 1) {
+      await sleep(1500);
+    }
   }
   return added;
 }
