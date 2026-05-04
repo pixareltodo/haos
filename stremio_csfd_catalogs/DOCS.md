@@ -33,7 +33,7 @@ V HAOS nastavujes hlavni addon konfiguraci, porty, kluce a zdroje. To je porad h
 
 ### Ve webovem rozhrani addonu
 
-Ve webu addonu muzes pohodlne spravovat katalogy, jejich zdroje a filtry. Tyto zmeny se neukladaji do zadne druhe databaze, ale do stejneho sdileneho addon configu. Po webove zmene katalogu je potreba restart addonu v HAOS.
+Ve webu addonu muzes pohodlne spravovat katalogy, jejich zdroje, filtry i to, jestli ma katalog ve vychozim zobrazeni ukazovat vsechny filmy, nebo jen ty sparovane. Tyto zmeny se neukladaji do zadne druhe databaze, ale do stejneho sdileneho addon configu. Po webove zmene katalogu je potreba restart addonu v HAOS.
 
 ### Ve Stremio nebo Nuvio
 
