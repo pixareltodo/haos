@@ -76,14 +76,6 @@ function buildExportPayloadItems(report) {
   };
 }
 
-function buildListDescription(catalog, preview) {
-  return [
-    `Export katalogu ${catalog.name} z addonu CSFD katalogy.`,
-    `Exportovatelnych polozek: ${preview.exportable.length}.`,
-    `Preskocenych polozek bez standardniho ID: ${preview.skipped.length}.`
-  ].join(' ');
-}
-
 function renderPreviewList(items, emptyText) {
   if (!items.length) {
     return `<p>${escapeHtml(emptyText)}</p>`;
@@ -241,7 +233,7 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
     <section class="card">
       <div class="pill">${authorized ? 'Trakt autorizovany' : 'Trakt zatim neni autorizovany'}</div>
       <h1>Trakt export: ${escapeHtml(catalog.name)}</h1>
-      <p>Export je vzdy navazany na konkretni katalog. Zadna druha konfigurace bokem nevznika, vsechno se bere z aktualniho katalogu, jeho cache a match reportu.</p>
+      <p>Tahle stranka bere aktualni obsah vybraneho katalogu, vyfiltruje polozky se standardnim filmovym ID a prida je do tveho Trakt listu. Nic se nekopiruje do druhe konfigurace bokem, vsechno se bere z toho sameho katalogu a stejne cache, kterou pouziva i addon pro Stremio.</p>
       ${message ? `<div class="message">${escapeHtml(message)}</div>` : ''}
       <div class="actions">
         <a class="button secondary" href="/admin">Zpet na rozcestnik</a>
@@ -255,6 +247,7 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
         <h2>Nahled exportu</h2>
         <dl>
           <dt>Katalog</dt><dd><code>${escapeHtml(catalog.id)}</code></dd>
+          <dt>Co se exportuje</dt><dd>jen tituly se sparovanym standardnim ID, typicky IMDb nebo TMDB</dd>
           <dt>Polozek celkem</dt><dd>${escapeHtml(report.total)}</dd>
           <dt>Sparovano</dt><dd>${escapeHtml(report.resolvedCount)}</dd>
           <dt>Exportovatelnych</dt><dd>${escapeHtml(preview.exportable.length)}</dd>
@@ -263,17 +256,17 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
       </article>
       <article class="card">
         <h2>Kdy je autorizace potreba</h2>
-        <p>Pro samotne matchovani filmu autorizace Traktu nutna neni. Pro zapis do tveho Trakt uctu uz ano, proto jsou export akce aktivni az po autorizaci.</p>
+        <p>Pro samotne sparovani filmu Trakt autorizace potreba neni. Jakmile ale chces zapisovat polozky do sveho Trakt uctu, musi byt Trakt autorizovany, protoze addon pak jedna tvym jmenem.</p>
       </article>
     </section>
     <section class="grid">
       <article class="card">
         <h2>Pridat do existujiciho listu</h2>
-        <p>Nova tvorba listu je schovana, protoze Trakt ji u nekterych uctu vraci nestabilne omezenou. Doporucena a stabilni cesta je list nejdriv zalozit primo na Trakt webu a tady do nej jen doplnovat polozky z katalogu.</p>
+        <p>Doporucena cesta je zalozit si list primo na Trakt webu a tady do nej jen doplnovat polozky z katalogu. Tvorba noveho listu je schovana, protoze Trakt ji u nekterych uctu omezuje nebo vraci nestabilni chyby.</p>
         <form method="post" action="/admin/trakt/export/${encodeURIComponent(catalog.id)}/append">
           <label>Existujici list
             <select name="listId" ${(!authorized || (!traktLists.length && !preview.exportable.length)) ? 'disabled' : ''}>
-              ${traktLists.map((list) => `<option value="${escapeHtml(list.id)}">${escapeHtml(list.name)} (${escapeHtml(list.itemCount)})</option>`).join('')}
+              ${traktLists.map((list) => `<option value="${escapeHtml(list.routeId)}">${escapeHtml(list.name)} (${escapeHtml(list.itemCount)})</option>`).join('')}
             </select>
           </label>
           <label>Rucni slug nebo ID listu
@@ -369,6 +362,7 @@ function renderExportResultPage({ title, message, details = [], backHref }) {
 function normalizeTraktList(entry) {
   return {
     id: entry.ids?.slug || `${entry.ids?.trakt || ''}` || entry.slug || `${entry.name || ''}`.trim(),
+    routeId: `${entry.ids?.trakt || ''}` || entry.ids?.slug || entry.slug || `${entry.name || ''}`.trim(),
     traktId: entry.ids?.trakt || null,
     slug: entry.ids?.slug || entry.slug || '',
     name: entry.name || '',
@@ -506,7 +500,7 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         message: [
           `${req.query.message || ''}`.trim(),
           context.traktListsError
-            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje.'
+            ? 'Existujici Trakt listy se nepodarilo nacist. Pokud uz znas slug nebo ID listu, muzes ho zadat rucne a export i tak pouzit.'
             : ''
         ].filter(Boolean).join(' ')
       }));
@@ -597,7 +591,7 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         return;
       }
 
-      const targetList = context.traktLists.find((list) => list.id === listId);
+      const targetList = context.traktLists.find((list) => list.routeId === listId || list.id === listId || `${list.traktId || ''}` === listId);
       if (!listId) {
         res.status(400).type('html').send(renderExportResultPage({
           title: 'Trakt list neni vybran',
@@ -632,7 +626,8 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         return;
       }
 
-      const added = await pushItemsToList(traktClient, listId, context.preview.exportable);
+      const routeListId = targetList.routeId || `${targetList.traktId || ''}` || targetList.id;
+      const added = await pushItemsToList(traktClient, routeListId, context.preview.exportable);
       res.type('html').send(renderExportResultPage({
         title: 'Trakt list aktualizovan',
         message: 'Exportovatelne polozky byly pridany do vybraneho existujiciho Trakt listu.',
