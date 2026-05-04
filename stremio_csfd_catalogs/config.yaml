@@ -1,5 +1,5 @@
 name: "Stremio CSFD katalogy"
-version: "1.0.20"
+version: "1.0.21"
 slug: "stremio_csfd_catalogs"
 description: "Samostatny HAOS addon, ktery z CSFD zdroju vytvari vlastni Stremio katalogy s detailem filmu a exportem do Trakt"
 arch:
@@ -66,6 +66,7 @@ options:
       max_items: 500
       stremio_type: "movie"
       include_future_titles: false
+      matched_only_default: false
       filter_enabled: true
       filter_allowed_origins:
         - "Cesko"
@@ -125,6 +126,7 @@ schema:
       max_items: "int(1,5000)?"
       stremio_type: "list(movie|series)?"
       include_future_titles: "bool?"
+      matched_only_default: "bool?"
       filter_enabled: "bool?"
       filter_allowed_origins:
         - "str?"
