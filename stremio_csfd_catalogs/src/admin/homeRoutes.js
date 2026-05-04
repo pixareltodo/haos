@@ -183,7 +183,7 @@ function renderDashboard({
     <section class="hero">
       <div class="pill">Verze ${escapeHtml(BUILD_INFO.version)} - ${escapeHtml(BUILD_INFO.buildSignature)}</div>
       <h1>${escapeHtml(options.addon_name)}</h1>
-      <p class="lead">Jedno centralni misto pro manifest, diagnostiku, Trakt a katalogy. Vsechno se vykresluje z aktualni konfigurace a runtime stavu addonu, bez paralelnich konfiguracnich struktur.</p>
+      <p class="lead">Tenhle addon stahuje a udrzuje vlastni filmove katalogy z CSFD, doplnuje k nim metadata a vystavuje je jako Stremio manifest, katalogy a detail filmu. Tady na uvodni strance mas vse na jednom miste: instalacni odkaz do Stremia nebo Nuvio, stav katalogu, diagnostiku, Trakt integraci i spravu zdroju.</p>
       <div class="actions">
         ${manifestHttpUrl ? `<a class="button" href="${manifestHttpUrl}" target="_blank" rel="noreferrer">Otevrit manifest HTTP</a>` : ''}
         ${manifestHttpsUrl ? `<a class="button" href="${manifestHttpsUrl}" target="_blank" rel="noreferrer">Otevrit manifest HTTPS</a>` : ''}
@@ -202,26 +202,26 @@ function renderDashboard({
     </section>
     <section class="grid">
       <article class="card">
-        <h2>Co tu najdes</h2>
+        <h2>Co addon dela</h2>
         <ul>
-          <li>manifest pro Stremio a Nuvio</li>
-          <li>stav katalogu a jejich refresh</li>
-          <li>Trakt autorizaci a test</li>
-          <li>per-katalog Trakt export bez paralelni konfigurace</li>
-          <li>match report s informaci, jestli pomohl TMDB, Cinemeta nebo Trakt</li>
+          <li>vytahuje seznamy z CSFD a prevadi je na samostatne katalogy pro Stremio</li>
+          <li>u kazde polozky se snazi doplnit obrazky, popis, detail a pripadne i standardni filmove ID</li>
+          <li>udrzuje cache, aby addon bezel rychleji a nesahal zbytecne casto na vzdaleny zdroj</li>
+          <li>propojuje katalogy s Trakt exportem po jednotlivych katalozich, ne globalne</li>
+          <li>neuklada druhou konfiguraci bokem, vsechno vychazi z jednoho sdileneho addon configu</li>
         </ul>
       </article>
       <article class="card">
-        <h2>Jak poznas, ze se pouzil Trakt</h2>
+        <h2>Jak addon pouzivat</h2>
         <ul>
-          <li>v <code>/admin/csfd/matches/&lt;catalogId&gt;</code> uvidis <code>resolutionSource: "trakt"</code></li>
-          <li>v souhrnu uvidis i <code>sourceCounts.trakt</code></li>
-          <li>po zmene Trakt stavu se nespolehlive stare match cache znovu prepocitaji</li>
-          <li>z kazdeho katalogu jde vytvorit nebo doplnit vlastni Trakt list</li>
+          <li>do Stremia nebo Nuvio pridavej addon pres odkaz <code>manifest.json</code></li>
+          <li>katalogy i jejich zdroje muzes spravovat z webu addon rozhrani nebo z HAOS konfigurace</li>
+          <li>po zmene katalogu ve webove sprave udelej restart addonu, aby se nova konfigurace plne propsala do behu</li>
+          <li>Trakt autorizace je potreba jen pro zapis do tveho Trakt uctu, ne pro samotne sparovani filmu</li>
         </ul>
       </article>
       <article class="card">
-        <h2>Dulezite odkazy</h2>
+        <h2>Kde co najdes</h2>
         <div class="actions compact">
           <a class="button secondary" href="/admin/trakt/status" target="_blank" rel="noreferrer">Trakt status</a>
           <a class="button secondary" href="/admin/trakt/test?title=Certoviny&year=2017" target="_blank" rel="noreferrer">Trakt test: Certoviny</a>
