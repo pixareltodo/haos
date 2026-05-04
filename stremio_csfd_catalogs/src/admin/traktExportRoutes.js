@@ -454,17 +454,39 @@ async function loadExportContext(catalogManager, traktClient, catalogId) {
   const report = await catalogManager.getMatchReport(catalogId);
   const preview = buildExportPayloadItems(report);
   const traktStatus = await traktClient.getStatus();
-  const traktLists = traktStatus.authorized
-    ? (await getUserLists(traktClient)).map(normalizeTraktList)
-    : [];
 
   return {
     catalog,
     report,
     preview,
     traktStatus,
-    traktLists
+    traktLists: []
   };
+}
+
+async function enrichContextWithLists(context, traktClient) {
+  if (!context?.traktStatus?.authorized) {
+    return {
+      ...context,
+      traktLists: [],
+      traktListsError: ''
+    };
+  }
+
+  try {
+    return {
+      ...context,
+      traktLists: (await getUserLists(traktClient)).map(normalizeTraktList),
+      traktListsError: ''
+    };
+  }
+  catch (error) {
+    return {
+      ...context,
+      traktLists: [],
+      traktListsError: error?.message || 'Trakt listy se nepodarilo nacist.'
+    };
+  }
 }
 
 function buildTraktMoviePayload(items) {
@@ -490,7 +512,8 @@ export function createTraktExportRouter(catalogManager, traktClient) {
 
   router.get('/:catalogId', async (req, res, next) => {
     try {
-      const context = await loadExportContext(catalogManager, traktClient, req.params.catalogId);
+      const baseContext = await loadExportContext(catalogManager, traktClient, req.params.catalogId);
+      const context = await enrichContextWithLists(baseContext, traktClient);
       if (!context) {
         res.status(404).json({ error: 'Catalog not found' });
         return;
@@ -498,7 +521,12 @@ export function createTraktExportRouter(catalogManager, traktClient) {
 
       res.type('html').send(renderExportPage({
         ...context,
-        message: `${req.query.message || ''}`.trim()
+        message: [
+          `${req.query.message || ''}`.trim(),
+          context.traktListsError
+            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje.'
+            : ''
+        ].filter(Boolean).join(' ')
       }));
     }
     catch (error) {
@@ -550,7 +578,8 @@ export function createTraktExportRouter(catalogManager, traktClient) {
 
   router.post('/:catalogId/append', async (req, res, next) => {
     try {
-      const context = await loadExportContext(catalogManager, traktClient, req.params.catalogId);
+      const baseContext = await loadExportContext(catalogManager, traktClient, req.params.catalogId);
+      const context = await enrichContextWithLists(baseContext, traktClient);
       if (!context) {
         res.status(404).json({ error: 'Catalog not found' });
         return;
@@ -560,6 +589,15 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         res.status(400).type('html').send(renderExportResultPage({
           title: 'Trakt neni autorizovany',
           message: 'Pro pridani do existujiciho Trakt listu je potreba nejdriv autorizovat Trakt ucet.',
+          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
+        }));
+        return;
+      }
+
+      if (context.traktListsError) {
+        res.status(502).type('html').send(renderExportResultPage({
+          title: 'Trakt listy nejsou dostupne',
+          message: 'Existujici Trakt listy se ted nepodarilo nacist. Zkus to prosim znovu pozdeji, nebo misto toho vytvor novy list.',
           backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
         }));
         return;
