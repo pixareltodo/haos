@@ -13,6 +13,7 @@ import { createCatalogRouter } from './stremio/catalogRoutes.js';
 import { createMetaRouter } from './stremio/metaRoutes.js';
 import { createAdminRouter } from './admin/csfdAdminRoutes.js';
 import { createTraktAdminRouter } from './admin/traktAdminRoutes.js';
+import { createTraktExportRouter } from './admin/traktExportRoutes.js';
 import { createHomeRouter } from './admin/homeRoutes.js';
 import { BUILD_INFO } from './config/buildInfo.js';
 
@@ -33,6 +34,7 @@ function createApp(options, catalogManager, traktClient) {
   });
 
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   app.use(createHomeRouter(options, catalogManager, traktClient));
 
   app.get('/manifest.json', (_req, res) => {
@@ -43,8 +45,8 @@ function createApp(options, catalogManager, traktClient) {
     res.json({
       ok: true,
       addon: options.addon_name,
-      version: options.addon_version || BUILD_INFO.version,
-      buildSignature: options.addon_build_signature || BUILD_INFO.buildSignature,
+      version: BUILD_INFO.version,
+      buildSignature: BUILD_INFO.buildSignature,
       catalogs: await catalogManager.getStatus()
     });
   });
@@ -53,6 +55,7 @@ function createApp(options, catalogManager, traktClient) {
   app.use('/meta', createMetaRouter(catalogManager));
   app.use('/admin/csfd', createAdminRouter(catalogManager));
   app.use('/admin/trakt', createTraktAdminRouter(traktClient));
+  app.use('/admin/trakt/export', createTraktExportRouter(catalogManager, traktClient));
 
   app.use((error, _req, res, _next) => {
     logger.error('Unhandled request error', { error: error.message });
@@ -96,8 +99,8 @@ async function resolveHttpsCredentials(options) {
 async function start() {
   const options = await loadAddonOptions();
   logger.info('Addon build info', {
-    version: options.addon_version || BUILD_INFO.version,
-    buildSignature: options.addon_build_signature || BUILD_INFO.buildSignature
+    version: BUILD_INFO.version,
+    buildSignature: BUILD_INFO.buildSignature
   });
   await ensureDir(options.cacheDir);
   await ensureDir(options.shareDir);
