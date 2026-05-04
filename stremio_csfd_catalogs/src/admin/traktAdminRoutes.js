@@ -143,6 +143,7 @@ function renderTraktHomePage(status) {
       <p>Tady mas jedno klikaci misto pro Trakt. Nemusis lovit endpointy rucne.</p>
       <div class="actions">
         <a class="button" href="/admin/trakt/authorize">Autorizovat Trakt</a>
+        <a class="button secondary" href="/admin">Prejit na hlavni rozcestnik</a>
         <a class="button secondary" href="/admin/trakt/status" target="_blank" rel="noreferrer">Otevrit stav JSON</a>
         <a class="button secondary" href="/admin/trakt/test?title=Certoviny&year=2017" target="_blank" rel="noreferrer">Otestovat Certoviny</a>
       </div>
@@ -160,6 +161,7 @@ function renderTraktHomePage(status) {
         <li>otevri <code>/admin/csfd/matches/csfd_cz_sk_pohadky</code></li>
         <li>hledej <code>"resolutionSource":"trakt"</code> u konkretnich filmu</li>
         <li>v souhrnu uvidis i pocty podle zdroje parovani</li>
+        <li>vlastni Trakt export listu spustis z konkretni karty katalogu na hlavni strance addonu</li>
       </ul>
     </section>
   </main>
