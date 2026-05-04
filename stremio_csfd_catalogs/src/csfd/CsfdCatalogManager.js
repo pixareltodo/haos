@@ -686,9 +686,10 @@ export class CsfdCatalogManager {
       type = '',
       year = '',
       future = '',
-      matched = catalogConfig.matched_only_default ? 'only' : '',
+      matched = '',
       sort = ''
     } = extras;
+    const effectiveMatched = catalogConfig.matched_only_default ? 'only' : matched;
     const normalizedSearch = normalizeSearchText(search);
     const state = await this.ensureCatalogState(catalogId);
     const filterEvaluations = [];
@@ -718,7 +719,7 @@ export class CsfdCatalogManager {
         continue;
       }
 
-      if (!matchesMatchedFilter(item, cachedDetail, matched)) {
+      if (!matchesMatchedFilter(item, cachedDetail, effectiveMatched)) {
         continue;
       }
 
@@ -882,7 +883,7 @@ export class CsfdCatalogManager {
           ? 'tmdb'
           : traktMatch?.imdbId
             ? 'trakt'
-          : 'csfd-fallback',
+            : 'csfd-fallback',
       enrichmentVersion: ENRICHMENT_VERSION,
       idResolutionContextSignature: resolutionContextSignature,
       idResolutionAttemptedAt: new Date().toISOString(),
