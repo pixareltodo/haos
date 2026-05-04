@@ -21,7 +21,7 @@ function buildCatalogExtras(catalog) {
     ['Film', 'TV film', 'Serial', 'Miniserie']
   );
 
-  return [
+  const extras = [
     { name: 'search', isRequired: false },
     { name: 'skip', isRequired: false },
     { name: 'genre', isRequired: false, options: genreOptions, optionsLimit: 1 },
@@ -40,18 +40,23 @@ function buildCatalogExtras(catalog) {
       optionsLimit: 1
     },
     {
-      name: 'matched',
-      isRequired: false,
-      options: ['all', 'only', 'unmatched'],
-      optionsLimit: 1
-    },
-    {
       name: 'sort',
       isRequired: false,
       options: ['default', 'year_desc', 'year_asc', 'name_asc', 'name_desc'],
       optionsLimit: 1
     }
   ];
+
+  if (catalog?.matched_only_default !== true) {
+    extras.splice(extras.length - 1, 0, {
+      name: 'matched',
+      isRequired: false,
+      options: ['all', 'only', 'unmatched'],
+      optionsLimit: 1
+    });
+  }
+
+  return extras;
 }
 
 export function buildManifest(options, catalogs) {
