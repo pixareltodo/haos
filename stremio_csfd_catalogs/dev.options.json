@@ -1,6 +1,6 @@
 {
-  "addon_version": "1.0.21",
-  "addon_build_signature": "1.0.21-trakt-batch-retry-and-matched-default-2026-05-04",
+  "addon_version": "1.0.22",
+  "addon_build_signature": "1.0.22-enforced-matched-filter-and-webui-2026-05-04",
   "host_ip": "127.0.0.1",
   "http_enabled": true,
   "http_port": 7010,
