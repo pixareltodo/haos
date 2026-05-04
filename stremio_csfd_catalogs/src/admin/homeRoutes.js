@@ -26,6 +26,7 @@ function renderCatalogCards(statuses, catalogs) {
         <a class="button secondary" href="/catalog/${encodeURIComponent(catalog.stremio_type)}/${encodeURIComponent(catalog.id)}.json" target="_blank" rel="noreferrer">Katalog JSON</a>
         <a class="button secondary" href="/admin/csfd/status/${encodeURIComponent(catalog.id)}" target="_blank" rel="noreferrer">Status JSON</a>
         <a class="button secondary" href="/admin/csfd/matches/${encodeURIComponent(catalog.id)}" target="_blank" rel="noreferrer">Match report</a>
+        <a class="button secondary" href="/admin/config/catalogs/${encodeURIComponent(catalog.id)}/edit">Upravit katalog</a>
         <a class="button secondary" href="/admin/trakt/export/${encodeURIComponent(catalog.id)}">Trakt export</a>
       </div>
     </article>`;
@@ -188,6 +189,7 @@ function renderDashboard({
         ${manifestHttpsUrl ? `<a class="button" href="${manifestHttpsUrl}" target="_blank" rel="noreferrer">Otevrit manifest HTTPS</a>` : ''}
         <a class="button secondary" href="/health" target="_blank" rel="noreferrer">Health JSON</a>
         <a class="button secondary" href="/admin/csfd/status" target="_blank" rel="noreferrer">Status JSON</a>
+        <a class="button secondary" href="/admin/config/catalogs">Sprava katalogu</a>
         <a class="button secondary" href="/admin/trakt">Trakt</a>
         ${firstCatalog ? `<a class="button secondary" href="/admin/csfd/matches/${encodeURIComponent(firstCatalog.id)}" target="_blank" rel="noreferrer">Match report</a>` : ''}
       </div>
@@ -223,6 +225,7 @@ function renderDashboard({
         <div class="actions compact">
           <a class="button secondary" href="/admin/trakt/status" target="_blank" rel="noreferrer">Trakt status</a>
           <a class="button secondary" href="/admin/trakt/test?title=Certoviny&year=2017" target="_blank" rel="noreferrer">Trakt test: Certoviny</a>
+          <a class="button secondary" href="/admin/config/catalogs">Upravit katalogy</a>
           ${firstCatalog ? `<a class="button secondary" href="/admin/trakt/export/${encodeURIComponent(firstCatalog.id)}">Trakt export: ${escapeHtml(firstCatalog.name)}</a>` : ''}
           ${firstCatalog ? `<a class="button secondary" href="/catalog/${encodeURIComponent(firstCatalog.stremio_type)}/${encodeURIComponent(firstCatalog.id)}.json" target="_blank" rel="noreferrer">Katalog JSON</a>` : ''}
         </div>
