@@ -213,26 +213,31 @@ export class CsfdCatalogManager {
     this.apiClient = new CsfdApiClient(options, logger);
     this.matcher = new CinemetaMatcher({ logger });
     this.tmdbClient = new TmdbClient(options, logger);
-    this.traktClient = new TraktClient(options, logger, new TraktAuthStore(options.cacheDir));
+    this.traktAuthStore = new TraktAuthStore(options.cacheDir);
+    this.traktClient = new TraktClient(options, logger, this.traktAuthStore);
     this.catalogStates = new Map();
     this.catalogStatuses = new Map();
     this.refreshTimers = [];
     this.hydrationJobs = new Map();
-    this.providers = {
+    this.providers = this.createProviders(options);
+  }
+
+  createProviders(options) {
+    return {
       csfd_html_list: new CsfdHtmlListProvider({
-        logger,
+        logger: this.logger,
         requestDelayMs: options.csfd_request_delay_ms
       }),
       json_file: new JsonFileProvider({
-        logger,
+        logger: this.logger,
         shareDir: options.shareDir
       }),
       csv_file: new CsvFileProvider({
-        logger,
+        logger: this.logger,
         shareDir: options.shareDir
       }),
       external_script: new ExternalScriptProvider({
-        logger,
+        logger: this.logger,
         shareDir: options.shareDir
       })
     };
@@ -244,6 +249,90 @@ export class CsfdCatalogManager {
 
   getCatalogById(catalogId) {
     return this.options.csfd_catalogs.find((catalog) => catalog.id === catalogId) || null;
+  }
+
+  clearRefreshTimers() {
+    for (const timer of this.refreshTimers) {
+      clearInterval(timer);
+    }
+    this.refreshTimers = [];
+  }
+
+  scheduleRefreshTimers() {
+    this.clearRefreshTimers();
+    for (const catalog of this.getEnabledCatalogs()) {
+      const timer = setInterval(() => {
+        this.refreshCatalog(catalog.id, 'scheduled').catch((error) => {
+          this.logger.error('Scheduled refresh failed', {
+            catalogId: catalog.id,
+            error: error.message
+          });
+        });
+      }, catalog.refresh_interval_hours * 60 * 60 * 1000);
+
+      this.refreshTimers.push(timer);
+    }
+  }
+
+  async applyOptions(nextOptions, reason = 'config-update') {
+    this.options = nextOptions;
+    this.apiClient.updateOptions(nextOptions);
+    this.tmdbClient.updateOptions(nextOptions);
+    this.traktClient.updateOptions(nextOptions);
+
+    for (const provider of Object.values(this.providers)) {
+      if (typeof provider.updateOptions === 'function') {
+        provider.updateOptions({
+          requestDelayMs: nextOptions.csfd_request_delay_ms,
+          shareDir: nextOptions.shareDir
+        });
+      }
+    }
+
+    const validCatalogIds = new Set(nextOptions.csfd_catalogs.map((catalog) => catalog.id));
+    for (const catalogId of [...this.catalogStates.keys()]) {
+      if (!validCatalogIds.has(catalogId)) {
+        this.catalogStates.delete(catalogId);
+        this.catalogStatuses.delete(catalogId);
+      }
+    }
+
+    for (const catalog of nextOptions.csfd_catalogs) {
+      await this.cache.initCatalog(catalog.id);
+      if (!this.catalogStatuses.has(catalog.id)) {
+        const cachedStatus = await this.cache.readStatus(catalog.id);
+        if (cachedStatus) {
+          this.catalogStatuses.set(catalog.id, cachedStatus);
+        }
+      }
+
+      if (!this.catalogStates.has(catalog.id)) {
+        const cachedList = await this.cache.readList(catalog.id)
+          || await this.cache.readLastGoodList(catalog.id);
+        if (cachedList) {
+          this.catalogStates.set(catalog.id, cachedList);
+        }
+      }
+    }
+
+    this.scheduleRefreshTimers();
+
+    const refreshResults = [];
+    for (const catalog of this.getEnabledCatalogs()) {
+      const existingState = this.catalogStates.get(catalog.id);
+      if (!existingState?.items?.length) {
+        refreshResults.push(await this.refreshCatalog(catalog.id, reason));
+      }
+      else {
+        this.startBackgroundHydration(catalog, existingState.items, `${reason}-cache`);
+      }
+    }
+
+    return {
+      appliedAt: new Date().toISOString(),
+      enabledCatalogCount: this.getEnabledCatalogs().length,
+      refreshedCatalogCount: refreshResults.length
+    };
   }
 
   async init() {
@@ -275,18 +364,7 @@ export class CsfdCatalogManager {
       }
     }
 
-    for (const catalog of this.getEnabledCatalogs()) {
-      const timer = setInterval(() => {
-        this.refreshCatalog(catalog.id, 'scheduled').catch((error) => {
-          this.logger.error('Scheduled refresh failed', {
-            catalogId: catalog.id,
-            error: error.message
-          });
-        });
-      }, catalog.refresh_interval_hours * 60 * 60 * 1000);
-
-      this.refreshTimers.push(timer);
-    }
+    this.scheduleRefreshTimers();
   }
 
   async ensureCatalogState(catalogId) {
@@ -608,7 +686,7 @@ export class CsfdCatalogManager {
       type = '',
       year = '',
       future = '',
-      matched = '',
+      matched = catalogConfig.matched_only_default ? 'only' : '',
       sort = ''
     } = extras;
     const normalizedSearch = normalizeSearchText(search);
@@ -804,7 +882,7 @@ export class CsfdCatalogManager {
           ? 'tmdb'
           : traktMatch?.imdbId
             ? 'trakt'
-            : 'csfd-fallback',
+          : 'csfd-fallback',
       enrichmentVersion: ENRICHMENT_VERSION,
       idResolutionContextSignature: resolutionContextSignature,
       idResolutionAttemptedAt: new Date().toISOString(),
