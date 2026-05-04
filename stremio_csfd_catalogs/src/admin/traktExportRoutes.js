@@ -5,7 +5,7 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/\"/g, '&quot;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
@@ -93,11 +93,8 @@ function renderPreviewList(items, emptyText) {
 }
 
 function renderExportPage({ catalog, report, preview, traktStatus, traktLists, message = '' }) {
-  const exportDefaultName = catalog.name;
-  const exportDefaultDescription = buildListDescription(catalog, preview);
   const authorized = traktStatus.authorized === true;
-  const appendDisabled = !authorized || (!traktLists.length && !message.includes('rucne'));
-  const createDisabled = !authorized || !preview.exportable.length;
+  const appendDisabled = !authorized || !preview.exportable.length;
 
   return `<!doctype html>
 <html lang="cs">
@@ -271,36 +268,18 @@ function renderExportPage({ catalog, report, preview, traktStatus, traktLists, m
     </section>
     <section class="grid">
       <article class="card">
-        <h2>Vytvorit novy Trakt list</h2>
-        <form method="post" action="/admin/trakt/export/${encodeURIComponent(catalog.id)}/create">
-          <label>Nazev listu
-            <input type="text" name="name" value="${escapeHtml(exportDefaultName)}" required />
-          </label>
-          <label>Popis
-            <textarea name="description">${escapeHtml(exportDefaultDescription)}</textarea>
-          </label>
-          <label>Viditelnost
-            <select name="privacy">
-              <option value="private">private</option>
-              <option value="friends">friends</option>
-              <option value="public">public</option>
-            </select>
-          </label>
-          <button type="submit" ${createDisabled ? 'disabled' : ''}>Vytvorit list a nahrat polozky</button>
-        </form>
-      </article>
-      <article class="card">
         <h2>Pridat do existujiciho listu</h2>
+        <p>Nova tvorba listu je schovana, protoze Trakt ji u nekterych uctu vraci nestabilne omezenou. Doporucena a stabilni cesta je list nejdriv zalozit primo na Trakt webu a tady do nej jen doplnovat polozky z katalogu.</p>
         <form method="post" action="/admin/trakt/export/${encodeURIComponent(catalog.id)}/append">
           <label>Existujici list
-            <select name="listId" ${appendDisabled ? 'disabled' : ''}>
+            <select name="listId" ${(!authorized || (!traktLists.length && !preview.exportable.length)) ? 'disabled' : ''}>
               ${traktLists.map((list) => `<option value="${escapeHtml(list.id)}">${escapeHtml(list.name)} (${escapeHtml(list.itemCount)})</option>`).join('')}
             </select>
           </label>
           <label>Rucni slug nebo ID listu
             <input type="text" name="manualListId" placeholder="napr. moje-pohadky nebo 123456" />
           </label>
-          <button type="submit">Pridat exportovatelne polozky</button>
+          <button type="submit" ${appendDisabled ? 'disabled' : ''}>Pridat exportovatelne polozky</button>
         </form>
       </article>
     </section>
@@ -527,7 +506,7 @@ export function createTraktExportRouter(catalogManager, traktClient) {
         message: [
           `${req.query.message || ''}`.trim(),
           context.traktListsError
-            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje a append jde i rucne pres slug nebo ID.'
+            ? 'Existujici Trakt listy se nepodarilo nacist, ale vytvoreni noveho listu porad funguje.'
             : ''
         ].filter(Boolean).join(' ')
       }));
@@ -608,6 +587,16 @@ export function createTraktExportRouter(catalogManager, traktClient) {
       const selectedListId = `${req.body.listId || ''}`.trim();
       const manualListId = `${req.body.manualListId || ''}`.trim();
       const listId = manualListId || selectedListId;
+
+      if (context.traktListsError && !manualListId) {
+        res.status(502).type('html').send(renderExportResultPage({
+          title: 'Trakt listy nejsou dostupne',
+          message: 'Existujici Trakt listy se ted nepodarilo nacist. Zkus to prosim znovu pozdeji, nebo pouzij rucni slug nebo ID listu.',
+          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
+        }));
+        return;
+      }
+
       const targetList = context.traktLists.find((list) => list.id === listId);
       if (!listId) {
         res.status(400).type('html').send(renderExportResultPage({
@@ -630,15 +619,6 @@ export function createTraktExportRouter(catalogManager, traktClient) {
             { label: 'Pridano polozek', value: `${added}` },
             { label: 'Preskoceno', value: `${context.preview.skipped.length}` }
           ]
-        }));
-        return;
-      }
-
-      if (context.traktListsError) {
-        res.status(502).type('html').send(renderExportResultPage({
-          title: 'Trakt listy nejsou dostupne',
-          message: 'Existujici Trakt listy se ted nepodarilo nacist. Zkus to prosim znovu pozdeji, nebo pouzij rucni slug nebo ID listu.',
-          backHref: `/admin/trakt/export/${encodeURIComponent(req.params.catalogId)}`
         }));
         return;
       }
