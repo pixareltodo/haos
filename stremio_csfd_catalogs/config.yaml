@@ -1,5 +1,5 @@
 name: "Stremio CSFD katalogy"
-version: "1.0.21"
+version: "1.0.22"
 slug: "stremio_csfd_catalogs"
 description: "Samostatny HAOS addon, ktery z CSFD zdroju vytvari vlastni Stremio katalogy s detailem filmu a exportem do Trakt"
 arch:
@@ -7,6 +7,7 @@ arch:
 init: false
 startup: services
 boot: auto
+webui: "http://[HOST]:[PORT:7010]/"
 
 ports:
   7010/tcp: 7010
