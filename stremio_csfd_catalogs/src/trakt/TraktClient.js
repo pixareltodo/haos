@@ -198,6 +198,19 @@ export class TraktClient {
     return Boolean(this.clientId && this.clientSecret);
   }
 
+  async getResolutionMode() {
+    if (!this.enabled) {
+      return 'disabled';
+    }
+
+    if (!this.configured) {
+      return 'unconfigured';
+    }
+
+    const state = await this.authStore.read();
+    return state?.token?.access_token ? 'authorized' : 'public';
+  }
+
   async fetchJson(url, { method = 'GET', body = null, accessToken = '' } = {}) {
     const response = await fetch(url, {
       method,
