@@ -5,6 +5,7 @@ Custom Home Assistant OS add-ons.
 ## Included add-ons
 
 - `stremio_csfd_catalogs` - Local Stremio addon for CSFD movie catalogs
+- `ma_provider_watcher` - Restores the `ytmusic_free` Music Assistant provider and keeps its config backed up across updates
 
 ## Add repository to Home Assistant
 
@@ -14,3 +15,4 @@ In Home Assistant, open the Add-on Store and add this repository URL.
 
 - `repository.yaml`
 - `stremio_csfd_catalogs/config.yaml`
+- `ma_provider_watcher/config.yaml`
