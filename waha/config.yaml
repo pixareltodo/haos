@@ -1,0 +1,60 @@
+name: "WAHA"
+description: "WhatsApp HTTP API for Home Assistant OS, based on the official WAHA container."
+version: "2026.4.3-1"
+slug: waha
+url: "https://github.com/pixareltodo/haos/tree/main/waha"
+startup: application
+boot: auto
+init: false
+arch:
+  - aarch64
+  - amd64
+ports:
+  3000/tcp: 3000
+ports_description:
+  3000/tcp: "WAHA HTTP API and dashboard"
+webui: "http://[HOST]:[PORT:3000]/dashboard"
+options:
+  api_key: ""
+  no_api_key: false
+  dashboard_enabled: true
+  dashboard_username: "waha"
+  dashboard_password: "waha"
+  default_engine: "WEBJS"
+  print_qr: true
+  worker_id: "haos"
+  namespace: "all"
+  restart_all_sessions: false
+  auto_start_delay_seconds: 0
+  base_url: ""
+  public_url: ""
+  webhook_url: ""
+  webhook_events: ""
+  webhook_hmac_key: ""
+  download_media: true
+  persist_media: true
+  files_lifetime: 180
+  log_level: "info"
+  log_format: "PRETTY"
+schema:
+  api_key: str
+  no_api_key: bool
+  dashboard_enabled: bool
+  dashboard_username: str
+  dashboard_password: str
+  default_engine: list(WEBJS|NOWEB|GOWS)
+  print_qr: bool
+  worker_id: str
+  namespace: str
+  restart_all_sessions: bool
+  auto_start_delay_seconds: int(0,)
+  base_url: str
+  public_url: str
+  webhook_url: str
+  webhook_events: str
+  webhook_hmac_key: str
+  download_media: bool
+  persist_media: bool
+  files_lifetime: int(0,)
+  log_level: list(error|warn|info|debug|trace)
+  log_format: list(PRETTY|JSON)
