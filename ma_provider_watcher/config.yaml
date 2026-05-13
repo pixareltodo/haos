@@ -9,6 +9,3 @@ docker_api: true
 arch:
   - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
