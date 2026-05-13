@@ -1,5 +1,7 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+ARG BUILD_ARCH
+FROM devlikeapro/waha:latest-2026.4.3 AS base_amd64
+FROM devlikeapro/waha:arm-2026.4.3 AS base_aarch64
+FROM base_${BUILD_ARCH}
 
 COPY run.sh /run.sh
 COPY render-env.js /render-env.js
