@@ -17,13 +17,15 @@ WAHA is a self-hosted WhatsApp HTTP API with a web dashboard.
 ## Recommended first start
 
 1. Install the add-on from your custom repository.
-2. Set your own `api_key` before exposing the port outside your LAN.
+2. Set either `api_key_plain` or `api_key` before exposing the port outside your LAN.
 3. Start the add-on and open the web UI.
 4. Use the dashboard to create or connect a WhatsApp session.
 
 ## Important notes
 
-- If `api_key` stays empty and `no_api_key` is `false`, WAHA can generate its own random API key on startup.
+- `api_key_plain` is the simplest option for Home Assistant users. WAHA will hash it internally and you use that same plain key in clients like n8n.
+- `api_key` is for advanced use when you already have a `sha512:...` hash prepared.
+- If both API key fields stay empty and `no_api_key` is `false`, WAHA can generate its own random API key on startup.
 - `persist_media: true` stores files in `/data/media` and disables automatic cleanup by setting `WHATSAPP_FILES_LIFETIME=0`.
 - `persist_media: false` keeps media in `/tmp/whatsapp-files` and uses `files_lifetime` for cleanup.
 - The add-on currently tracks WAHA `2026.4.3`.
@@ -31,6 +33,8 @@ WAHA is a self-hosted WhatsApp HTTP API with a web dashboard.
 ## Main options
 
 - `default_engine`: `WEBJS`, `NOWEB`, or `GOWS`
+- `api_key_plain`: easiest secure API key option for Home Assistant and n8n
+- `api_key`: pre-hashed `sha512:...` API key for advanced setups
 - `dashboard_enabled`: enable or disable the WAHA dashboard
 - `print_qr`: print QR code into the add-on log
 - `webhook_url`, `webhook_events`, `webhook_hmac_key`: global webhook configuration
