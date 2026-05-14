@@ -1,6 +1,6 @@
 name: "WAHA"
 description: "WhatsApp HTTP API for Home Assistant OS, based on the official WAHA container."
-version: "2026.4.3-2"
+version: "2026.4.3-3"
 slug: waha
 url: "https://github.com/pixareltodo/haos/tree/main/waha"
 startup: application
@@ -16,6 +16,7 @@ ports_description:
 webui: "http://[HOST]:[PORT:3000]/dashboard"
 options:
   api_key: ""
+  api_key_plain: ""
   no_api_key: false
   dashboard_enabled: true
   dashboard_username: "waha"
@@ -37,11 +38,12 @@ options:
   log_level: "info"
   log_format: "PRETTY"
 schema:
-  api_key: str
+  api_key: password
+  api_key_plain: password
   no_api_key: bool
   dashboard_enabled: bool
   dashboard_username: str
-  dashboard_password: str
+  dashboard_password: password
   default_engine: list(WEBJS|NOWEB|GOWS)
   print_qr: bool
   worker_id: str
