@@ -21,6 +21,8 @@ function shellEscape(value) {
 }
 
 const persistMedia = options.persist_media ?? true;
+const apiKeyHash = stringValue(options.api_key);
+const apiKeyPlain = stringValue(options.api_key_plain);
 const env = {
   PERSIST_MEDIA: boolString(persistMedia, true),
   TZ: stringValue(process.env.TZ, "UTC"),
@@ -48,10 +50,11 @@ const env = {
     : stringValue(options.files_lifetime, 180),
 };
 
-const apiKey = stringValue(options.api_key);
 const optionalEnv = {
-  WAHA_API_KEY: apiKey,
-  WAHA_NO_API_KEY: apiKey === "" && options.no_api_key ? "True" : "",
+  WAHA_API_KEY: apiKeyPlain || apiKeyHash,
+  WAHA_API_KEY_PLAIN: apiKeyPlain,
+  WAHA_NO_API_KEY:
+    apiKeyPlain === "" && apiKeyHash === "" && options.no_api_key ? "True" : "",
   WAHA_BASE_URL: stringValue(options.base_url),
   WAHA_PUBLIC_URL: stringValue(options.public_url),
   WHATSAPP_HOOK_URL: stringValue(options.webhook_url),
