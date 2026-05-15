@@ -4,6 +4,8 @@ set -eu
 
 mkdir -p /data/sessions /data/media
 
+echo "WAHA add-on wrapper 2026.4.3-4 starting"
+
 eval "$(node /render-env.js)"
 
 export WHATSAPP_API_HOSTNAME="0.0.0.0"
