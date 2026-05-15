@@ -1,6 +1,6 @@
 name: "WAHA"
 description: "WhatsApp HTTP API for Home Assistant OS, based on the official WAHA container."
-version: "2026.4.3-3"
+version: "2026.4.3-4"
 slug: waha
 url: "https://github.com/pixareltodo/haos/tree/main/waha"
 startup: application
