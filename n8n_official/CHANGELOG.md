@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Add `secure_cookie` option
+- Default `N8N_SECURE_COOKIE` to `false` for local HTTP access
+
 ## 0.1.3
 
 - Add `webui` link for direct opening of n8n from Home Assistant
