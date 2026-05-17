@@ -4,6 +4,5 @@ COPY run.sh /run.sh
 
 USER root
 RUN chmod 755 /run.sh
-USER node
 
 ENTRYPOINT ["/bin/sh", "/run.sh"]
