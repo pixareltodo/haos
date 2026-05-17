@@ -1,5 +1,5 @@
 name: "n8n Official"
-version: "0.1.3"
+version: "0.1.4"
 slug: "n8n_official"
 description: >-
   Home Assistant OS add-on that runs the official n8n Docker image with
@@ -31,6 +31,7 @@ options:
   editor_base_url: ""
   webhook_url: ""
   encryption_key: ""
+  secure_cookie: false
   enforce_settings_file_permissions: true
   runners_enabled: true
   executions_data_prune: true
@@ -47,6 +48,7 @@ schema:
   editor_base_url: str?
   webhook_url: str?
   encryption_key: password?
+  secure_cookie: bool
   enforce_settings_file_permissions: bool
   runners_enabled: bool
   executions_data_prune: bool
