@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Add `webui` link for direct opening of n8n from Home Assistant
+- Enable Home Assistant ingress and sidebar panel for the add-on
+
 ## 0.1.2
 
 - Change add-on website link to the GitHub repository page for `n8n_official`
