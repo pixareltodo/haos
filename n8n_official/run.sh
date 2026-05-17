@@ -3,8 +3,7 @@ set -eu
 
 OPTIONS_FILE="/data/options.json"
 USER_FOLDER="/data/.n8n"
-
-mkdir -p "$USER_FOLDER"
+NODE_HOME="/home/node"
 
 json_get() {
   key="$1"
@@ -70,6 +69,18 @@ fi
 
 if [ -n "${ENCRYPTION_KEY_OPT:-}" ]; then
   export N8N_ENCRYPTION_KEY="$ENCRYPTION_KEY_OPT"
+fi
+
+mkdir -p "$USER_FOLDER"
+
+if [ "$(id -u)" = "0" ]; then
+  mkdir -p "$NODE_HOME"
+  chown -R node:node "$USER_FOLDER" "$NODE_HOME"
+  if [ -e "$NODE_HOME/.n8n" ] && [ ! -L "$NODE_HOME/.n8n" ]; then
+    rm -rf "$NODE_HOME/.n8n"
+  fi
+  ln -sfn "$USER_FOLDER" "$NODE_HOME/.n8n"
+  exec su node -s /bin/sh -c 'exec tini -- /docker-entrypoint.sh'
 fi
 
 exec tini -- /docker-entrypoint.sh
