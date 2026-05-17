@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Fix permissions for `/data/.n8n`
+- Start wrapper as `root`, prepare persistent data directory, then run n8n as `node`
+- Link `/home/node/.n8n` to `/data/.n8n` for compatibility with the official image
+
 ## 0.1.0
 
 - Initial local add-on scaffold
