@@ -1,0 +1,46 @@
+configuration:
+  timezone:
+    name: Timezone
+    description: Timezone used by n8n schedules and the container.
+  n8n_host:
+    name: n8n host
+    description: Hostname or IP that n8n should advertise for direct access.
+  n8n_port:
+    name: n8n port
+    description: Port exposed by the add-on.
+  n8n_protocol:
+    name: n8n protocol
+    description: Protocol used for generated editor and webhook URLs.
+  editor_base_url:
+    name: Editor base URL
+    description: Optional external base URL for the n8n editor.
+  webhook_url:
+    name: Webhook URL
+    description: Optional external base URL used for webhooks.
+  encryption_key:
+    name: Encryption key
+    description: Optional fixed n8n encryption key.
+  enforce_settings_file_permissions:
+    name: Enforce settings permissions
+    description: Enable n8n secure settings file permissions.
+  runners_enabled:
+    name: Enable runners
+    description: Enable n8n task runners.
+  executions_data_prune:
+    name: Prune executions
+    description: Enable automatic execution cleanup.
+  executions_data_max_age:
+    name: Execution max age
+    description: How long to keep execution data, in hours.
+  executions_data_prune_max_count:
+    name: Max execution count
+    description: Maximum number of execution records to retain.
+  executions_data_save_on_success:
+    name: Save on success
+    description: Whether to save successful executions.
+  executions_data_save_manual_executions:
+    name: Save manual executions
+    description: Whether to keep manual execution data.
+  db_sqlite_vacuum_on_startup:
+    name: Vacuum SQLite on startup
+    description: Compact the SQLite database when the add-on starts.
