@@ -1,10 +1,10 @@
 name: "n8n Official"
-version: "0.1.1"
+version: "0.1.2"
 slug: "n8n_official"
 description: >-
   Home Assistant OS add-on that runs the official n8n Docker image with
   direct port access and persistent local data.
-url: "https://docs.n8n.io/hosting/installation/docker/"
+url: "https://github.com/pixareltodo/haos/tree/main/n8n_official"
 arch:
   - aarch64
   - amd64
