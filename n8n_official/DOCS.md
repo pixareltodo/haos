@@ -9,13 +9,14 @@ This add-on runs the official n8n Docker image and exposes n8n directly on port 
 - Gives you direct editor/API/webhook access on one port
 - Makes it easier to update n8n by changing the image tag in the Dockerfile
 
-## Install as a local add-on
+## Install from this GitHub repository
 
-1. Copy the `haos-n8n-official` folder to your Home Assistant local add-on directory.
-2. In Home Assistant, add that local repository if needed.
-3. Open the add-on store and install `n8n Official`.
-4. Review the options and start the add-on.
-5. Open `http://<home-assistant-ip>:5678`.
+1. In Home Assistant, open `Settings > Add-ons > Add-on Store`.
+2. Open the menu and choose `Repositories`.
+3. Add this repository URL: `https://github.com/pixareltodo/haos`
+4. Install `n8n Official`.
+5. Review the options and start the add-on.
+6. Open `http://<home-assistant-ip>:5678`.
 
 ## Recommended options
 
