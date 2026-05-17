@@ -1,5 +1,5 @@
 name: "n8n Official"
-version: "0.1.0"
+version: "0.1.1"
 slug: "n8n_official"
 description: >-
   Home Assistant OS add-on that runs the official n8n Docker image with
