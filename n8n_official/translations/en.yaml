@@ -20,6 +20,9 @@ configuration:
   encryption_key:
     name: Encryption key
     description: Optional fixed n8n encryption key.
+  secure_cookie:
+    name: Secure cookie
+    description: Enable only when you access n8n over HTTPS.
   enforce_settings_file_permissions:
     name: Enforce settings permissions
     description: Enable n8n secure settings file permissions.
