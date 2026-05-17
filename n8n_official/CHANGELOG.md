@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Change add-on website link to the GitHub repository page for `n8n_official`
+
 ## 0.1.1
 
 - Fix permissions for `/data/.n8n`
