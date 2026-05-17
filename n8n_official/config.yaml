@@ -1,0 +1,52 @@
+name: "n8n Official"
+version: "0.1.0"
+slug: "n8n_official"
+description: >-
+  Home Assistant OS add-on that runs the official n8n Docker image with
+  direct port access and persistent local data.
+url: "https://docs.n8n.io/hosting/installation/docker/"
+arch:
+  - aarch64
+  - amd64
+startup: services
+boot: auto
+init: false
+ports:
+  5678/tcp: 5678
+ports_description:
+  5678/tcp: "n8n editor, API and webhooks"
+map:
+  - type: addon_config
+    read_only: false
+options:
+  timezone: "Europe/Prague"
+  n8n_host: "192.168.1.196"
+  n8n_port: 5678
+  n8n_protocol: "http"
+  editor_base_url: ""
+  webhook_url: ""
+  encryption_key: ""
+  enforce_settings_file_permissions: true
+  runners_enabled: true
+  executions_data_prune: true
+  executions_data_max_age: 168
+  executions_data_prune_max_count: 5000
+  executions_data_save_on_success: "none"
+  executions_data_save_manual_executions: false
+  db_sqlite_vacuum_on_startup: true
+schema:
+  timezone: str
+  n8n_host: str
+  n8n_port: port
+  n8n_protocol: list(http|https)
+  editor_base_url: str?
+  webhook_url: str?
+  encryption_key: password?
+  enforce_settings_file_permissions: bool
+  runners_enabled: bool
+  executions_data_prune: bool
+  executions_data_max_age: int
+  executions_data_prune_max_count: int
+  executions_data_save_on_success: list(all|none)
+  executions_data_save_manual_executions: bool
+  db_sqlite_vacuum_on_startup: bool
