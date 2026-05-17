@@ -40,6 +40,13 @@ executions_data_save_manual_executions: false
 db_sqlite_vacuum_on_startup: true
 ```
 
+## Data path and permissions
+
+- n8n stores its data in `/data/.n8n`
+- the add-on wrapper prepares that directory as `root`
+- it then starts n8n as user `node`
+- `/home/node/.n8n` is linked to `/data/.n8n` so the official image layout still matches what n8n expects
+
 ## Notes
 
 - If you already have existing n8n data you want to preserve, migrate the `.n8n` data carefully.
